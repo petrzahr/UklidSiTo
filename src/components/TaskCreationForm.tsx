@@ -4,7 +4,7 @@ import { Person, Room, TaskPreset } from "@/types";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createTaskAction } from "@/app/actions/task-actions";
-import { Check, Sparkles, User, ArrowLeft, Clock } from "lucide-react";
+import { Check, Sparkles, User, ArrowLeft, Clock, X } from "lucide-react";
 import Link from "next/link";
 
 interface Props {
@@ -102,9 +102,6 @@ export function TaskCreationForm({ people, presets, rooms }: Props) {
         if (result.success) {
           const person = people.find((p) => p.id === selectedAssigneeId);
           setSubmittedMessage(`✅ Pachatel byl informován. (${person?.name || "Řešitel"})`);
-          setTimeout(() => {
-            router.push("/");
-          }, 1400);
         }
       } catch (err: unknown) {
         setErrorMessage(
@@ -114,19 +111,57 @@ export function TaskCreationForm({ people, presets, rooms }: Props) {
     });
   };
 
+  const handleResetForm = () => {
+    setSelectedPresetId(null);
+    setTaskName("");
+    setIsCustomTask(false);
+    setSaveAsPreset(false);
+    setSelectedRoomId(null);
+    setRoomName("");
+    setIsCustomRoom(false);
+    setSaveAsRoomPreset(false);
+    setNote("");
+    setDeadline("");
+    setSubmittedMessage(null);
+    setErrorMessage(null);
+  };
+
   if (submittedMessage) {
     return (
-      <div className="bg-white rounded-3xl border border-emerald-200 p-8 sm:p-12 text-center max-w-lg mx-auto shadow-xl animate-in zoom-in-95 duration-200">
+      <div className="relative bg-white rounded-3xl border border-emerald-200 p-8 sm:p-12 text-center max-w-lg mx-auto shadow-xl animate-in zoom-in-95 duration-200">
+        <button
+          type="button"
+          onClick={() => router.push("/")}
+          title="Zavřít"
+          className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors"
+          aria-label="Zavřít"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
         <div className="text-6xl mb-4">🫡</div>
         <h2 className="text-2xl font-black text-slate-900 mb-2">
           {submittedMessage}
         </h2>
-        <p className="text-sm text-slate-500 mb-6">
+        <p className="text-sm text-slate-500 mb-8">
           E-mail s instrukcemi a potvrzovacím tlačítkem je na cestě.
         </p>
-        <div className="inline-flex items-center gap-2 text-xs font-semibold text-emerald-700 bg-emerald-50 px-4 py-2 rounded-full">
-          <Clock className="w-3.5 h-3.5 animate-spin" />
-          Přesměrovávám na přehled...
+
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+          <button
+            type="button"
+            onClick={() => router.push("/")}
+            className="w-full sm:w-auto px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl shadow-md transition-all active:scale-95 text-sm"
+          >
+            Zavřít
+          </button>
+          <button
+            type="button"
+            onClick={handleResetForm}
+            className="w-full sm:w-auto px-6 py-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold rounded-xl border border-emerald-200 transition-all active:scale-95 text-sm"
+          >
+            Nahlásit další bordel
+          </button>
         </div>
       </div>
     );
