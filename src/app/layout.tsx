@@ -1,8 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
-import SessionWrapper from "@/components/SessionWrapper";
 import { EnvironmentBadge } from "@/components/EnvironmentBadge";
 import { Header } from "@/components/Header";
+import { getSession } from "@/lib/auth/session";
 
 export const metadata: Metadata = {
   title: "UklidSiTo – Domácnost sama se neuklidí",
@@ -20,24 +20,25 @@ export const viewport: Viewport = {
   userScalable: false,
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await getSession();
+  const isLoggedIn = !!session;
+
   return (
     <html lang="cs">
       <body className="antialiased min-h-screen flex flex-col bg-slate-50 text-slate-900">
-        <SessionWrapper>
-          <EnvironmentBadge />
-          <Header />
-          <main className="flex-1 w-full max-w-5xl mx-auto px-4 py-6">
-            {children}
-          </main>
-          <footer className="border-t border-slate-200 py-6 text-center text-xs text-slate-400">
-            <p>🧹 <strong>UklidSiTo</strong> • Domácnost sama se neuklidí.</p>
-          </footer>
-        </SessionWrapper>
+        <EnvironmentBadge />
+        <Header isLoggedIn={isLoggedIn} />
+        <main className="flex-1 w-full max-w-5xl mx-auto px-4 py-6">
+          {children}
+        </main>
+        <footer className="border-t border-slate-200 py-6 text-center text-xs text-slate-400">
+          <p>🧹 <strong>UklidSiTo</strong> • Domácnost sama se neuklidí.</p>
+        </footer>
       </body>
     </html>
   );

@@ -1,13 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { signOut, useSession } from "next-auth/react";
+import { usePathname, useRouter } from "next/navigation";
 import { PlusCircle, Settings, Home, LogOut, Sparkles } from "lucide-react";
+import { useState } from "react";
 
-export function Header() {
+export function Header({ isLoggedIn }: { isLoggedIn?: boolean }) {
   const pathname = usePathname();
-  const { data: session } = useSession();
+  const router = useRouter();
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  async function handleLogout() {
+    setLoggingOut(true);
+    await fetch("/api/auth/logout", { method: "POST" });
+    router.push("/login");
+    router.refresh();
+  }
 
   // On public task completion page, show minimal clean header
   if (pathname.startsWith("/task/")) {
@@ -84,11 +92,12 @@ export function Header() {
             <span className="hidden sm:inline">Nastavení</span>
           </Link>
 
-          {session?.user && (
+          {isLoggedIn && (
             <button
-              onClick={() => signOut({ callbackUrl: "/login" })}
+              onClick={handleLogout}
+              disabled={loggingOut}
               title="Odhlásit se"
-              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors disabled:opacity-50"
             >
               <LogOut className="w-4 h-4" />
             </button>

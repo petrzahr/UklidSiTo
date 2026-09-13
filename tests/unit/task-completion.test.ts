@@ -69,13 +69,13 @@ describe("Task Completion & Idempotency", () => {
     // 1st completion
     const res1 = await taskService.completeTask(created.rawToken);
     expect(res1.status).toBe("COMPLETED");
-    const initialCompletedAt = res1.task.completedAt;
+    const initialCompletedAt = res1.task!.completedAt;
 
     // 2nd completion attempt
     const res2 = await taskService.completeTask(created.rawToken);
     expect(res2.success).toBe(true);
     expect(res2.status).toBe("ALREADY_DONE");
-    expect(res2.task.completedAt).toBe(initialCompletedAt);
+    expect(res2.task!.completedAt).toBe(initialCompletedAt);
   });
 
   it("prevents completing a CANCELLED task", async () => {

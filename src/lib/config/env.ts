@@ -6,15 +6,14 @@ export interface AppConfig {
   isTestOrDev: boolean;
   adminEmail: string;
   sheetId: string;
+  /** Public Google OAuth client ID – used by Google Identity Services on the frontend */
   googleClientId: string;
-  googleClientSecret: string;
   googleServiceAccountEmail?: string;
   googlePrivateKey?: string;
   resendApiKey?: string;
   emailFrom: string;
   testEmailRecipient?: string;
   appBaseUrl: string;
-  nextAuthSecret: string;
 }
 
 /**
@@ -107,15 +106,16 @@ export function getAppConfig(
     isTestOrDev,
     adminEmail,
     sheetId,
-    googleClientId: envSource.GOOGLE_CLIENT_ID || "",
-    googleClientSecret: envSource.GOOGLE_CLIENT_SECRET || "",
+    googleClientId:
+      envSource.NEXT_PUBLIC_GOOGLE_CLIENT_ID ||
+      envSource.GOOGLE_CLIENT_ID ||
+      "",
     googleServiceAccountEmail: envSource.GOOGLE_SERVICE_ACCOUNT_EMAIL,
     googlePrivateKey,
     resendApiKey: envSource.RESEND_API_KEY,
     emailFrom: envSource.EMAIL_FROM || "UklidSiTo <uklid@uklidsito.byzahr.app>",
     testEmailRecipient: testEmailRecipient || undefined,
     appBaseUrl,
-    nextAuthSecret: envSource.NEXTAUTH_SECRET || envSource.AUTH_SECRET || "development-insecure-secret-do-not-use-in-prod",
   };
 }
 

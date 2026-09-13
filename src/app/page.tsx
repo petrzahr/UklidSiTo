@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getTaskService } from "@/services/task-service";
 import { TaskCard } from "@/components/TaskCard";
 import { Plus, CheckCircle2, Clock, Ban } from "lucide-react";
+import { requireAdminSession } from "@/lib/auth/session";
 
 export const dynamic = "force-dynamic";
 
@@ -10,6 +11,8 @@ export default async function DashboardPage({
 }: {
   searchParams: Promise<{ tab?: string }>;
 }) {
+  await requireAdminSession({ redirectOnUnauth: true });
+
   const params = await searchParams;
   const currentTab = params?.tab || "open";
 

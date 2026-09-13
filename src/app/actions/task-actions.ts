@@ -1,6 +1,6 @@
 "use server";
 
-import { requireAdminSession } from "@/lib/auth/auth";
+import { requireAdminSession } from "@/lib/auth/session";
 import { createTaskSchema, editTaskSchema } from "@/lib/validation/schemas";
 import { getTaskService } from "@/services/task-service";
 import { CreateTaskInput, EditTaskInput } from "@/types";
@@ -8,7 +8,7 @@ import { revalidatePath } from "next/cache";
 
 export async function createTaskAction(data: CreateTaskInput) {
   const session = await requireAdminSession();
-  const actor = session.user?.email || "Administrator";
+  const actor = session.email;
 
   const parsed = createTaskSchema.parse(data);
   const taskService = getTaskService();
@@ -21,7 +21,7 @@ export async function createTaskAction(data: CreateTaskInput) {
 
 export async function editTaskAction(data: EditTaskInput) {
   const session = await requireAdminSession();
-  const actor = session.user?.email || "Administrator";
+  const actor = session.email;
 
   const parsed = editTaskSchema.parse(data);
   const taskService = getTaskService();
@@ -33,7 +33,7 @@ export async function editTaskAction(data: EditTaskInput) {
 
 export async function cancelTaskAction(id: string) {
   const session = await requireAdminSession();
-  const actor = session.user?.email || "Administrator";
+  const actor = session.email;
 
   const taskService = getTaskService();
   const task = await taskService.cancelTask(id, actor);
@@ -44,7 +44,7 @@ export async function cancelTaskAction(id: string) {
 
 export async function resendTaskEmailAction(id: string) {
   const session = await requireAdminSession();
-  const actor = session.user?.email || "Administrator";
+  const actor = session.email;
 
   const taskService = getTaskService();
   const result = await taskService.resendEmail(id, actor);

@@ -3,10 +3,13 @@ import { getPresetService } from "@/services/preset-service";
 import { getRoomService } from "@/services/room-service";
 import { getConfig } from "@/lib/config/env";
 import { SettingsView } from "@/components/SettingsView";
+import { requireAdminSession } from "@/lib/auth/session";
 
 export const dynamic = "force-dynamic";
 
 export default async function SettingsPage() {
+  await requireAdminSession({ redirectOnUnauth: true });
+
   const people = await getPeopleService().getAll();
   const presets = await getPresetService().getAll();
   const rooms = await getRoomService().getAll();

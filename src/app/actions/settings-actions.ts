@@ -1,6 +1,6 @@
 "use server";
 
-import { requireAdminSession } from "@/lib/auth/auth";
+import { requireAdminSession } from "@/lib/auth/session";
 import { personSchema, presetSchema, roomSchema } from "@/lib/validation/schemas";
 import { getPeopleService } from "@/services/people-service";
 import { getPresetService } from "@/services/preset-service";
@@ -11,7 +11,7 @@ import { z } from "zod";
 
 export async function createPersonAction(data: z.infer<typeof personSchema>) {
   const session = await requireAdminSession();
-  const actor = session.user?.email || "Administrator";
+  const actor = session.email;
 
   const parsed = personSchema.parse(data);
   const person = await getPeopleService().create(parsed, actor);
@@ -26,7 +26,7 @@ export async function updatePersonAction(
   data: Partial<z.infer<typeof personSchema>>
 ) {
   const session = await requireAdminSession();
-  const actor = session.user?.email || "Administrator";
+  const actor = session.email;
 
   const person = await getPeopleService().update(id, data, actor);
 
@@ -37,7 +37,7 @@ export async function updatePersonAction(
 
 export async function createPresetAction(data: z.infer<typeof presetSchema>) {
   const session = await requireAdminSession();
-  const actor = session.user?.email || "Administrator";
+  const actor = session.email;
 
   const parsed = presetSchema.parse(data);
   const preset = await getPresetService().create(parsed, actor);
@@ -52,7 +52,7 @@ export async function updatePresetAction(
   data: Partial<z.infer<typeof presetSchema>>
 ) {
   const session = await requireAdminSession();
-  const actor = session.user?.email || "Administrator";
+  const actor = session.email;
 
   const preset = await getPresetService().update(id, data, actor);
 
@@ -63,7 +63,7 @@ export async function updatePresetAction(
 
 export async function createRoomAction(data: z.infer<typeof roomSchema>) {
   const session = await requireAdminSession();
-  const actor = session.user?.email || "Administrator";
+  const actor = session.email;
 
   const parsed = roomSchema.parse(data);
   const room = await getRoomService().create(parsed, actor);
@@ -78,7 +78,7 @@ export async function updateRoomAction(
   data: Partial<z.infer<typeof roomSchema>>
 ) {
   const session = await requireAdminSession();
-  const actor = session.user?.email || "Administrator";
+  const actor = session.email;
 
   const room = await getRoomService().update(id, data, actor);
 

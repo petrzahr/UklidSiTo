@@ -90,7 +90,8 @@ Vyplňte `.env.local`:
 - `ADMIN_EMAIL=vas-email@gmail.com`
 - `GOOGLE_SHEET_ID_TEST=id-vasi-testovaci-google-tabulky`
 - `TEST_EMAIL_RECIPIENT=vas-testovaci-inbox@gmail.com`
-- `NEXTAUTH_SECRET=vase-tajne-heslo`
+- `NEXT_PUBLIC_GOOGLE_CLIENT_ID=vas-google-client-id.apps.googleusercontent.com`
+- `SESSION_SECRET=vase-nahodne-tajne-heslo-min-32-znaku`
 
 *(Poznámka: Pokud ještě nemáte vytvořený Google Service Account, aplikace v development režimu automaticky použije in-memory úložiště, takže můžete UI a toky okamžitě testovat.)*
 
@@ -112,18 +113,19 @@ Aplikace poběží na `http://localhost:3000`.
 
 ## ⚙️ Nastavení externích služeb
 
-### 1. Google Cloud Console (OAuth & Service Account)
+### 1. Google Cloud Console (Google Identity Services & Service Account)
 
 1. V [Google Cloud Console](https://console.cloud.google.com/) vytvořte projekt (např. `UklidSiTo`).
 2. Povolte rozhraní API:
    - **Google Sheets API**
    - **Google Drive API**
-3. **OAuth 2.0 Client ID (pro administrátora)**:
+3. **OAuth 2.0 Client ID (pro administrátora přes Google Identity Services)**:
    - Vytvořte přihlašovací údaje OAuth Client ID (Web Application).
-   - Do **Authorized redirect URIs** přidejte:
-     - Lokálně: `http://localhost:3000/api/auth/callback/google`
-     - Produkce: `https://uklidsito.byzahr.app/api/auth/callback/google`
-   - Zkopírujte `Client ID` do `GOOGLE_CLIENT_ID` a `Client Secret` do `GOOGLE_CLIENT_SECRET`.
+   - Do **Authorized JavaScript origins** přidejte:
+     - Lokálně: `http://localhost:3000`
+     - Produkce: `https://uklidsito.byzahr.app`
+   - *Poznámka:* Redirect URIs ani Client Secret nejsou potřeba! Google Identity Services vrací ID token přímo do frontendu.
+   - Zkopírujte `Client ID` do `NEXT_PUBLIC_GOOGLE_CLIENT_ID`.
 4. **Service Account (pro zápis do Google tabulek)**:
    - Vytvořte Service Account (např. `uklidsito-service@...`).
    - Vygenerujte nový klíč typu **JSON**.
@@ -160,14 +162,13 @@ Aplikace poběží na `http://localhost:3000`.
 | `APP_ENV` | `development` | `preview` | `production` |
 | `APP_BASE_URL` | `http://localhost:3000` | `https://${VERCEL_URL}` | `https://uklidsito.byzahr.app` |
 | `ADMIN_EMAIL` | Váš Google e-mail | Váš Google e-mail | Váš Google e-mail |
+| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | OAuth Client ID | OAuth Client ID | OAuth Client ID |
+| `SESSION_SECRET` | Bezpečný náhodný řetězec (32+ znaků) | Bezpečný náhodný řetězec | Bezpečný náhodný řetězec |
 | `GOOGLE_SHEET_ID_PROD` | *(nevyplňovat nebo testovací)* | *(nevyplňovat)* | **ID produkční tabulky** |
 | `GOOGLE_SHEET_ID_TEST` | **ID testovací tabulky** | **ID testovací tabulky** | *(nevyplňovat)* |
 | `TEST_EMAIL_RECIPIENT` | Váš testovací inbox | Váš testovací inbox | *(nevyplňovat)* |
 | `GOOGLE_SERVICE_ACCOUNT_EMAIL`| E-mail service accountu | E-mail service accountu | E-mail service accountu |
 | `GOOGLE_PRIVATE_KEY` | Privátní klíč | Privátní klíč | Privátní klíč |
-| `GOOGLE_CLIENT_ID` | OAuth Client ID | OAuth Client ID | OAuth Client ID |
-| `GOOGLE_CLIENT_SECRET` | OAuth Client Secret | OAuth Client Secret | OAuth Client Secret |
-| `NEXTAUTH_SECRET` | Bezpečný náhodný řetězec | Bezpečný náhodný řetězec | Bezpečný náhodný řetězec |
 | `RESEND_API_KEY` | Resend API klíč | Resend API klíč | Resend API klíč |
 | `EMAIL_FROM` | `onboarding@resend.dev` | `onboarding@resend.dev` | `UklidSiTo <uklid@uklidsito.byzahr.app>` |
 
