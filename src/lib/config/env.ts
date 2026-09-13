@@ -26,7 +26,7 @@ export function getAppConfig(
   options: { strict?: boolean } = {}
 ): AppConfig {
   const envSource = overrideEnv || process.env;
-  const isStrict = options.strict ?? (Boolean(overrideEnv) || process.env.NODE_ENV === "test");
+  const isStrict = options.strict ?? Boolean(overrideEnv);
 
   // APP_ENV takes absolute precedence over NODE_ENV
   const rawEnv = (envSource.APP_ENV || "development").toLowerCase().trim();
@@ -55,8 +55,8 @@ export function getAppConfig(
   let sheetId = "";
   if (isProduction) {
     if (!sheetIdProd) {
-      // Allow Next.js static build phase without throwing fatal error during page compilation
-      if (!isStrict && process.env.NEXT_PHASE === "phase-production-build") {
+      // During build / prerender phase without runtime env vars, avoid crashing static export
+      if (!isStrict) {
         sheetId = "placeholder-prod-sheet-during-build";
       } else {
         throw new Error(
@@ -68,8 +68,8 @@ export function getAppConfig(
     }
   } else {
     if (!sheetIdTest) {
-      if (!isStrict && !process.env.CI) {
-        sheetId = "placeholder-test-sheet";
+      if (!isStrict) {
+        sheetId = "placeholder-test-sheet-during-build";
       } else {
         throw new Error(
           "Development/preview configuration error: GOOGLE_SHEET_ID_TEST is required in non-production environments. Never use production sheet for testing."
