@@ -1,0 +1,54 @@
+"use server";
+
+import { requireAdminSession } from "@/lib/auth/auth";
+import { createTaskSchema, editTaskSchema } from "@/lib/validation/schemas";
+import { getTaskService } from "@/services/task-service";
+import { CreateTaskInput, EditTaskInput } from "@/types";
+import { revalidatePath } from "next/cache";
+
+export async function createTaskAction(data: CreateTaskInput) {
+  const session = await requireAdminSession();
+  const actor = session.user?.email || "Administrator";
+
+  const parsed = createTaskSchema.parse(data);
+  const taskService = getTaskService();
+  const result = await taskService.createTask(parsed, actor);
+
+  revalidatePath("/");
+  revalidatePath("/settings");
+  return { success: true, task: result.task, emailResult: result.emailResult };
+}
+
+export async function editTaskAction(data: EditTaskInput) {
+  const session = await requireAdminSession();
+  const actor = session.user?.email || "Administrator";
+
+  const parsed = editTaskSchema.parse(data);
+  const taskService = getTaskService();
+  const task = await taskService.editTask(parsed, actor);
+
+  revalidatePath("/");
+  return { success: true, task };
+}
+
+export async function cancelTaskAction(id: string) {
+  const session = await requireAdminSession();
+  const actor = session.user?.email || "Administrator";
+
+  const taskService = getTaskService();
+  const task = await taskService.cancelTask(id, actor);
+
+  revalidatePath("/");
+  return { success: true, task };
+}
+
+export async function resendTaskEmailAction(id: string) {
+  const session = await requireAdminSession();
+  const actor = session.user?.email || "Administrator";
+
+  const taskService = getTaskService();
+  const result = await taskService.resendEmail(id, actor);
+
+  revalidatePath("/");
+  return { success: result.success, emailResult: result };
+}
