@@ -155,7 +155,9 @@ export default async function DashboardPage({
           <p className="text-sm text-slate-500 max-w-sm mx-auto mt-1">
             {currentTab === "open"
               ? "Všechno je uklizené, nebo jsi ještě nikomu nezadal žádnou práci."
-              : "Až někdo z úklidové čety potvrdí splnění, objeví se to tady."}
+              : currentTab === "done"
+              ? "Až někdo z úklidové čety potvrdí splnění, objeví se to tady."
+              : "Zrušené úkoly se zobrazí tady."}
           </p>
           {currentTab === "open" && (
             <Link
