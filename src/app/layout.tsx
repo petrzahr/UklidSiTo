@@ -4,7 +4,7 @@ import { Header } from "@/components/Header";
 import { getSession } from "@/lib/auth/session";
 
 export const metadata: Metadata = {
-  title: "UklidSiTo – Domácnost sama se neuklidí",
+  title: "UklidSiTo – Domácnost se sama neuklidí",
   description:
     "Jednoduchá soukromá aplikace pro správu úklidových úkolů v domácnosti s humornou osobností.",
   icons: {
@@ -35,7 +35,7 @@ export default async function RootLayout({
           {children}
         </main>
         <footer className="border-t border-slate-200 py-6 text-center text-xs text-slate-400">
-          <p>🧹 <strong>UklidSiTo</strong> • Domácnost sama se neuklidí.</p>
+          <p>🧹 <strong>UklidSiTo</strong> • Domácnost se sama neuklidí.</p>
         </footer>
       </body>
     </html>

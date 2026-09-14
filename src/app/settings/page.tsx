@@ -1,5 +1,6 @@
 import { getPeopleService } from "@/services/people-service";
 import { getPresetService } from "@/services/preset-service";
+import { getDeadlineService } from "@/services/deadline-service";
 import { getRoomService } from "@/services/room-service";
 import { getConfig } from "@/lib/config/env";
 import { SettingsView } from "@/components/SettingsView";
@@ -12,6 +13,7 @@ export default async function SettingsPage() {
 
   const people = await getPeopleService().getAll();
   const presets = await getPresetService().getAll();
+  const deadlines = await getDeadlineService().getAll();
   const rooms = await getRoomService().getAll();
   const config = getConfig();
 
@@ -35,6 +37,7 @@ export default async function SettingsPage() {
       people={people}
       presets={presets}
       rooms={rooms}
+      deadlines={deadlines}
       systemInfo={systemInfo}
     />
   );

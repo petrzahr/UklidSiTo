@@ -1,6 +1,6 @@
 "use client";
 
-import { Person, Room, TaskPreset } from "@/types";
+import { DeadlinePreset, Person, Room, TaskPreset } from "@/types";
 import { useState, useTransition } from "react";
 import {
   createPersonAction,
@@ -9,12 +9,15 @@ import {
   updatePresetAction,
   createRoomAction,
   updateRoomAction,
+  createDeadlineAction,
+  updateDeadlineAction,
   bootstrapStoreAction,
 } from "@/app/actions/settings-actions";
 import {
   Users,
   CheckSquare,
   Home,
+  Clock,
   Database,
   Plus,
   Edit2,
@@ -29,6 +32,7 @@ interface Props {
   people: Person[];
   presets: TaskPreset[];
   rooms: Room[];
+  deadlines: DeadlinePreset[];
   systemInfo: {
     maskedSheetId: string;
     storageType: string;
@@ -36,8 +40,8 @@ interface Props {
   };
 }
 
-export function SettingsView({ people, presets, rooms, systemInfo }: Props) {
-  const [activeTab, setActiveTab] = useState<"people" | "presets" | "rooms" | "system">("people");
+export function SettingsView({ people, presets, rooms, deadlines, systemInfo }: Props) {
+  const [activeTab, setActiveTab] = useState<"people" | "presets" | "rooms" | "deadlines" | "system">("people");
   const [isPending, startTransition] = useTransition();
   const [feedback, setFeedback] = useState<string | null>(null);
 
@@ -72,6 +76,14 @@ export function SettingsView({ people, presets, rooms, systemInfo }: Props) {
   // Editing room state
   const [editingRoomId, setEditingRoomId] = useState<string | null>(null);
   const [editRoomName, setEditRoomName] = useState("");
+
+  // New deadline form state
+  const [showAddDeadline, setShowAddDeadline] = useState(false);
+  const [newDeadlineName, setNewDeadlineName] = useState("");
+
+  // Editing deadline state
+  const [editingDeadlineId, setEditingDeadlineId] = useState<string | null>(null);
+  const [editDeadlineName, setEditDeadlineName] = useState("");
 
   // ---------------------------------------------------------------------------
   // People Handlers
@@ -243,6 +255,54 @@ export function SettingsView({ people, presets, rooms, systemInfo }: Props) {
     });
   };
 
+  const handleCreateDeadline = (e: React.FormEvent) => {
+    e.preventDefault();
+    startTransition(async () => {
+      try {
+        await createDeadlineAction({
+          name: newDeadlineName,
+          active: true,
+          sortOrder: deadlines.length + 1,
+        });
+        setNewDeadlineName("");
+        setShowAddDeadline(false);
+        setFeedback("Termín byl úspěšně přidán.");
+      } catch (err: unknown) {
+        alert(err instanceof Error ? err.message : "Chyba při vytváření termínu.");
+      }
+    });
+  };
+
+  const handleStartEditDeadline = (r: DeadlinePreset) => {
+    setEditingDeadlineId(r.id);
+    setEditDeadlineName(r.name);
+  };
+
+  const handleSaveEditDeadline = (deadlineId: string) => {
+    startTransition(async () => {
+      try {
+        await updateDeadlineAction(deadlineId, {
+          name: editDeadlineName.trim(),
+        });
+        setEditingDeadlineId(null);
+        setFeedback("Termín byl úspěšně přejmenován.");
+      } catch (err: unknown) {
+        alert(err instanceof Error ? err.message : "Chyba při přejmenování termínu.");
+      }
+    });
+  };
+
+  const handleToggleDeadline = (deadline: DeadlinePreset) => {
+    startTransition(async () => {
+      try {
+        await updateDeadlineAction(deadline.id, { active: !deadline.active });
+        setFeedback(`Termín "${deadline.name}" byl ${!deadline.active ? "aktivován" : "deaktivován"}.`);
+      } catch (err: unknown) {
+        alert(err instanceof Error ? err.message : "Chyba při změně stavu termínu.");
+      }
+    });
+  };
+
   // ---------------------------------------------------------------------------
   // Bootstrap Store Handler
   // ---------------------------------------------------------------------------
@@ -267,7 +327,7 @@ export function SettingsView({ people, presets, rooms, systemInfo }: Props) {
           Nastavení aplikace ⚙️
         </h1>
         <p className="text-sm text-slate-500 mt-1">
-          Správa úklidové čety, předvoleb úkolů, místností a systémových informací.
+          Správa úklidové čety, předvoleb úkolů, místností, termínů a systémových informací.
         </p>
       </div>
 
@@ -319,6 +379,18 @@ export function SettingsView({ people, presets, rooms, systemInfo }: Props) {
         </button>
 
         <button
+          onClick={() => setActiveTab("deadlines")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+            activeTab === "deadlines"
+              ? "bg-slate-900 text-white shadow"
+              : "text-slate-600 hover:bg-slate-100"
+          }`}
+        >
+          <Clock className="w-4 h-4" />
+          <span>Termíny ({deadlines.length})</span>
+        </button>
+
+        <button
           onClick={() => setActiveTab("system")}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${
             activeTab === "system"
@@ -336,7 +408,7 @@ export function SettingsView({ people, presets, rooms, systemInfo }: Props) {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <p className="text-xs text-slate-500">
-              Členové úklidové čety se nepřihlašují. Úkoly dostávají e-mailem s jednorázovým odkazem.
+              Úklidová četa se nepřihlašuje. Úkoly potvrzují přes odkaz v e-mailu.
             </p>
             <button
               onClick={() => setShowAddPerson(!showAddPerson)}
@@ -843,7 +915,149 @@ export function SettingsView({ people, presets, rooms, systemInfo }: Props) {
         </div>
       )}
 
-      {/* TAB 4: SYSTÉM & PROSTŘEDÍ */}
+      {/* TAB 4: TERMÍNY */}
+      {activeTab === "deadlines" && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-slate-500">
+              Termíny jsou při zadávání úkolu vždy volitelné.
+            </p>
+            <button
+              onClick={() => setShowAddDeadline(!showAddDeadline)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-colors"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Přidat termín</span>
+            </button>
+          </div>
+
+          {showAddDeadline && (
+            <form
+              onSubmit={handleCreateDeadline}
+              className="bg-white p-4 rounded-xl border border-emerald-300 shadow-sm space-y-3"
+            >
+              <h3 className="text-sm font-bold text-slate-800">Nový termín</h3>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  required
+                  placeholder="Název (např. Do večera)"
+                  value={newDeadlineName}
+                  onChange={(e) => setNewDeadlineName(e.target.value)}
+                  className="flex-1 px-3 py-2 border rounded-lg text-xs outline-none focus:ring-2 focus:ring-emerald-500"
+                />
+                <button
+                  type="submit"
+                  disabled={isPending}
+                  className="px-5 bg-emerald-600 text-white font-bold rounded-lg text-xs hover:bg-emerald-700 transition-colors disabled:opacity-50"
+                >
+                  Uložit
+                </button>
+              </div>
+            </form>
+          )}
+
+          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden divide-y divide-slate-100">
+            {deadlines.length === 0 ? (
+              <p className="p-6 text-center text-xs text-slate-400">Žádné termíny. Přidejte první výše.</p>
+            ) : (
+              deadlines.map((deadline) => {
+                const isEditing = editingDeadlineId === deadline.id;
+
+                if (isEditing) {
+                  return (
+                    <div key={deadline.id} className="p-4 bg-emerald-50/40 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-slate-700">Přejmenovat termín:</span>
+                        <button
+                          onClick={() => setEditingDeadlineId(null)}
+                          className="text-slate-400 hover:text-slate-600 text-xs"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          required
+                          value={editDeadlineName}
+                          onChange={(e) => setEditDeadlineName(e.target.value)}
+                          placeholder="Název termínu"
+                          className="flex-1 px-3 py-1.5 border rounded-lg text-xs bg-white focus:ring-2 focus:ring-emerald-500 outline-none"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleSaveEditDeadline(deadline.id)}
+                          disabled={isPending}
+                          className="px-4 py-1.5 inline-flex items-center gap-1 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-bold transition-colors disabled:opacity-50"
+                        >
+                          <Check className="w-3.5 h-3.5" /> Uložit
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setEditingDeadlineId(null)}
+                          className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-xs font-semibold"
+                        >
+                          Zrušit
+                        </button>
+                      </div>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div
+                    key={deadline.id}
+                    className={`p-3.5 flex items-center justify-between hover:bg-slate-50 transition-colors ${
+                      !deadline.active ? "opacity-60 bg-slate-50/50" : ""
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <span className="text-base">⏰</span>
+                      <span className="font-bold text-slate-900 text-sm">
+                        {deadline.name}
+                      </span>
+                      {!deadline.active && (
+                        <span className="text-[10px] font-bold bg-slate-200 text-slate-600 px-2 py-0.5 rounded">
+                          Neaktivní
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-1.5 sm:gap-2">
+                      <button
+                        onClick={() => handleStartEditDeadline(deadline)}
+                        disabled={isPending}
+                        title="Přejmenovat termín"
+                        className="p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center gap-1 transition-colors"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                        <span className="hidden sm:inline">Přejmenovat</span>
+                      </button>
+
+                      <button
+                        onClick={() => handleToggleDeadline(deadline)}
+                        disabled={isPending}
+                        className={`p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors ${
+                          deadline.active
+                            ? "text-slate-500 hover:text-amber-700 hover:bg-amber-50"
+                            : "text-emerald-700 bg-emerald-50 hover:bg-emerald-100"
+                        }`}
+                        title={deadline.active ? "Deaktivovat termín" : "Aktivovat termín"}
+                      >
+                        <Power className="w-3.5 h-3.5" />
+                        <span className="hidden sm:inline">{deadline.active ? "Deaktivovat" : "Aktivovat"}</span>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* TAB 5: SYSTÉM & PROSTŘEDÍ */}
       {activeTab === "system" && (
         <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-6 shadow-sm">
           <div>

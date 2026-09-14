@@ -39,6 +39,7 @@ export interface IDataStore {
   people: IPeopleRepository;
   presets: IPresetRepository;
   rooms: IRoomRepository;
+  deadlines: IRoomRepository;
   activity: IActivityRepository;
   initialize(): Promise<void>;
 }

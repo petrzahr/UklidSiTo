@@ -1,9 +1,10 @@
 "use server";
 
 import { requireAdminSession } from "@/lib/auth/session";
-import { personSchema, presetSchema, roomSchema } from "@/lib/validation/schemas";
+import { personSchema, presetSchema, roomSchema, deadlineSchema } from "@/lib/validation/schemas";
 import { getPeopleService } from "@/services/people-service";
 import { getPresetService } from "@/services/preset-service";
+import { getDeadlineService } from "@/services/deadline-service";
 import { getRoomService } from "@/services/room-service";
 import { getDataStore } from "@/repositories";
 import { revalidatePath } from "next/cache";
@@ -88,6 +89,35 @@ export async function updateRoomAction(
   revalidatePath("/settings");
   revalidatePath("/tasks/new");
   return { success: true, room };
+}
+
+export async function createDeadlineAction(data: z.infer<typeof deadlineSchema>) {
+  const session = await requireAdminSession();
+  const actor = session.email;
+
+  const parsed = deadlineSchema.parse(data);
+  const deadline = await getDeadlineService().create(parsed, actor);
+
+  revalidatePath("/settings");
+  revalidatePath("/tasks/new");
+  revalidatePath("/tasks/[id]/edit", "page");
+  return { success: true, deadline };
+}
+
+export async function updateDeadlineAction(
+  id: string,
+  data: Partial<z.infer<typeof deadlineSchema>>
+) {
+  const session = await requireAdminSession();
+  const actor = session.email;
+
+  const parsed = deadlineSchema.partial().parse(data);
+  const deadline = await getDeadlineService().update(id, parsed, actor);
+
+  revalidatePath("/settings");
+  revalidatePath("/tasks/new");
+  revalidatePath("/tasks/[id]/edit", "page");
+  return { success: true, deadline };
 }
 
 export async function bootstrapStoreAction() {

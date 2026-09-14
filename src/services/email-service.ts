@@ -111,7 +111,7 @@ export class EmailService {
           <div style="text-align: center; margin-bottom: 24px;">
             <div style="display: inline-block; font-size: 40px; line-height: 1; margin-bottom: 8px;">🧹</div>
             <h1 style="margin: 0; font-size: 22px; color: #111827; font-weight: 700;">UklidSiTo</h1>
-            <p style="margin: 4px 0 0 0; font-size: 13px; color: #6b7280; font-style: italic;">Domácnost sama se neuklidí.</p>
+            <p style="margin: 4px 0 0 0; font-size: 13px; color: #6b7280; font-style: italic;">Domácnost se sama neuklidí.</p>
           </div>
 
           <div style="margin-bottom: 24px;">
@@ -188,7 +188,7 @@ export class EmailService {
           <div style="text-align: center; margin-bottom: 24px;">
             <div style="display: inline-block; font-size: 40px; line-height: 1; margin-bottom: 8px;">🧹</div>
             <h1 style="margin: 0; font-size: 22px; color: #111827; font-weight: 700;">UklidSiTo</h1>
-            <p style="margin: 4px 0 0 0; font-size: 13px; color: #6b7280; font-style: italic;">Domácnost sama se neuklidí.</p>
+            <p style="margin: 4px 0 0 0; font-size: 13px; color: #6b7280; font-style: italic;">Domácnost se sama neuklidí.</p>
           </div>
 
           <div style="margin-bottom: 24px;">
@@ -260,7 +260,7 @@ export class EmailService {
           <div style="text-align: center; margin-bottom: 24px;">
             <div style="display: inline-block; font-size: 40px; line-height: 1; margin-bottom: 8px;">🧹</div>
             <h1 style="margin: 0; font-size: 22px; color: #111827; font-weight: 700;">UklidSiTo</h1>
-            <p style="margin: 4px 0 0 0; font-size: 13px; color: #6b7280; font-style: italic;">Domácnost sama se neuklidí.</p>
+            <p style="margin: 4px 0 0 0; font-size: 13px; color: #6b7280; font-style: italic;">Domácnost se sama neuklidí.</p>
           </div>
 
           <div style="margin-bottom: 24px;">

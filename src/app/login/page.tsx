@@ -106,7 +106,7 @@ function LoginForm() {
         UklidSiTo
       </h1>
       <p className="text-sm text-slate-500 mb-8 flex items-center justify-center gap-1">
-        Domácnost sama se neuklidí{" "}
+        Domácnost se sama neuklidí{" "}
         <Sparkles className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
       </p>
 
@@ -122,7 +122,7 @@ function LoginForm() {
 
       <div className="space-y-4">
         <p className="text-xs text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-100">
-          Úklidová četa (členové domácnosti) se nepřihlašuje. Úkoly potvrzují přes odkaz v e-mailu.
+          Úklidová četa se nepřihlašuje. Úkoly potvrzují přes odkaz v e-mailu.
         </p>
 
         {/* Google Identity Services rendered button */}

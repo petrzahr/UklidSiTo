@@ -1,5 +1,6 @@
 import { getTaskService } from "@/services/task-service";
 import { getPeopleService } from "@/services/people-service";
+import { getDeadlineService } from "@/services/deadline-service";
 import { getRoomService } from "@/services/room-service";
 import { TaskEditForm } from "@/components/TaskEditForm";
 import { notFound } from "next/navigation";
@@ -33,6 +34,7 @@ export default async function EditTaskPage({
     }
   }
 
+  const deadlines = await getDeadlineService().getActive();
   const rooms = await getRoomService().getActive();
   if (task.roomId && !rooms.some((r) => r.id === task.roomId)) {
     const historicalRoom = await getRoomService().getById(task.roomId);
@@ -44,5 +46,5 @@ export default async function EditTaskPage({
     }
   }
 
-  return <TaskEditForm task={task} people={people} rooms={rooms} />;
+  return <TaskEditForm task={task} people={people} rooms={rooms} deadlines={deadlines} />;
 }

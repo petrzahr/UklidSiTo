@@ -50,6 +50,9 @@ export interface Room {
   updatedAt: string;
 }
 
+/** Configurable deadline labels use the same entity shape as rooms. */
+export type DeadlinePreset = Room;
+
 export type ActivityEventType =
   | "TASK_CREATED"
   | "TASK_EDITED"
@@ -70,7 +73,11 @@ export type ActivityEventType =
   | "ROOM_CREATED"
   | "ROOM_UPDATED"
   | "ROOM_ACTIVATED"
-  | "ROOM_DEACTIVATED";
+  | "ROOM_DEACTIVATED"
+  | "DEADLINE_CREATED"
+  | "DEADLINE_UPDATED"
+  | "DEADLINE_ACTIVATED"
+  | "DEADLINE_DEACTIVATED";
 
 export interface ActivityLogEntry {
   id: string;

@@ -1,6 +1,6 @@
 "use client";
 
-import { Person, Room, Task } from "@/types";
+import { DeadlinePreset, Person, Room, Task } from "@/types";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { editTaskAction, cancelTaskAction } from "@/app/actions/task-actions";
@@ -11,9 +11,10 @@ interface Props {
   task: Task;
   people: Person[];
   rooms: Room[];
+  deadlines: DeadlinePreset[];
 }
 
-export function TaskEditForm({ task, people, rooms }: Props) {
+export function TaskEditForm({ task, people, rooms, deadlines }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
@@ -207,6 +208,22 @@ export function TaskEditForm({ task, people, rooms }: Props) {
           <label className="block text-xs font-bold text-slate-700 mb-1">
             Termín
           </label>
+          <div className="flex flex-wrap gap-1.5 mb-2">
+            {deadlines.map((qd) => (
+              <button
+                type="button"
+                key={qd.id}
+                onClick={() => setDeadline(qd.name)}
+                className={`px-2.5 py-1 rounded-md text-xs font-medium border ${
+                  deadline === qd.name
+                    ? "bg-rose-50 border-rose-400 text-rose-700 font-bold"
+                    : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"
+                }`}
+              >
+                {qd.name}
+              </button>
+            ))}
+          </div>
           <input
             type="text"
             value={deadline}

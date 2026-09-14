@@ -1,6 +1,7 @@
 import { sheets_v4 } from "googleapis";
 import {
   ActivityLogEntry,
+  DeadlinePreset,
   Person,
   Room,
   Task,
@@ -16,13 +17,14 @@ import {
   ITaskRepository,
 } from "../interfaces";
 import { getGoogleSheetsClient } from "./client";
-import { INITIAL_PEOPLE, INITIAL_PRESETS, INITIAL_ROOMS } from "../seed-data";
+import { INITIAL_PEOPLE, INITIAL_PRESETS, INITIAL_ROOMS, INITIAL_DEADLINES } from "../seed-data";
 
 export const SHEET_NAMES = {
   TASKS: "Tasks",
   PEOPLE: "People",
   PRESETS: "TaskPresets",
   ROOMS: "Rooms",
+  DEADLINES: "Deadlines",
   ACTIVITY: "ActivityLog",
 } as const;
 
@@ -94,7 +96,49 @@ export class GoogleSheetsDataStore implements IDataStore {
     this.client = client || getGoogleSheetsClient();
   }
 
+  private deadlineSheetReady: Promise<void> | null = null;
+
+  private ensureDeadlineSheet(): Promise<void> {
+    if (!this.deadlineSheetReady) {
+      this.deadlineSheetReady = this.initializeDeadlineSheet().catch((error) => {
+        this.deadlineSheetReady = null;
+        throw error;
+      });
+    }
+    return this.deadlineSheetReady;
+  }
+
+  // Add only the new collection to existing installations; never rewrite existing data.
+  private async initializeDeadlineSheet(): Promise<void> {
+    const meta = await this.client.spreadsheets.get({ spreadsheetId: this.spreadsheetId });
+    if (meta.data.sheets?.some((s) => s.properties?.title === SHEET_NAMES.DEADLINES)) return;
+    const sheetId = Math.max(0, ...(meta.data.sheets || []).map((s) => s.properties?.sheetId || 0)) + 1;
+    const now = new Date().toISOString();
+    const rows = [ROOM_COLUMNS, ...INITIAL_DEADLINES.map((d) => [
+      d.id, d.name, d.active ? "TRUE" : "FALSE", String(d.sortOrder), now, now,
+    ])];
+    try {
+      // Sheets applies the creation and seed in one atomic batch.
+      await this.client.spreadsheets.batchUpdate({
+        spreadsheetId: this.spreadsheetId,
+        requestBody: { requests: [
+          { addSheet: { properties: { title: SHEET_NAMES.DEADLINES, sheetId } } },
+          { updateCells: {
+            start: { sheetId, rowIndex: 0, columnIndex: 0 },
+            rows: rows.map((row) => ({ values: row.map((value) => ({ userEnteredValue: { stringValue: value } })) })),
+            fields: "userEnteredValue",
+          } },
+        ] },
+      });
+    } catch (error) {
+      // Another request may have created the collection concurrently.
+      const latest = await this.client.spreadsheets.get({ spreadsheetId: this.spreadsheetId });
+      if (!latest.data.sheets?.some((s) => s.properties?.title === SHEET_NAMES.DEADLINES)) throw error;
+    }
+  }
+
   async initialize(): Promise<void> {
+    await this.ensureDeadlineSheet();
     const meta = await this.client.spreadsheets.get({
       spreadsheetId: this.spreadsheetId,
     });
@@ -569,6 +613,83 @@ export class GoogleSheetsDataStore implements IDataStore {
         requestBody: { values: [row] },
       });
       return room;
+    },
+  };
+
+  deadlines: IRoomRepository = {
+    getAll: async () => {
+      await this.ensureDeadlineSheet();
+      const res = await this.client.spreadsheets.values.get({
+        spreadsheetId: this.spreadsheetId,
+        range: `${SHEET_NAMES.DEADLINES}!A2:F`,
+      });
+      const rows = res.data.values || [];
+      return rows
+        .map((r) => ({
+          id: r[0] || "",
+          name: r[1] || "",
+          active: String(r[2]).toUpperCase() === "TRUE",
+          sortOrder: Number(r[3]) || 0,
+          createdAt: r[4] || "",
+          updatedAt: r[5] || "",
+        }))
+        .filter((r) => Boolean(r.id))
+        .sort((a, b) => a.sortOrder - b.sortOrder);
+    },
+
+    getById: async (id: string) => {
+      const deadlines = await this.deadlines.getAll();
+      return deadlines.find((r) => r.id === id) || null;
+    },
+
+    create: async (deadline: DeadlinePreset) => {
+      await this.ensureDeadlineSheet();
+      const row = [
+        deadline.id,
+        deadline.name,
+        deadline.active ? "TRUE" : "FALSE",
+        deadline.sortOrder,
+        deadline.createdAt,
+        deadline.updatedAt,
+      ];
+      await this.client.spreadsheets.values.append({
+        spreadsheetId: this.spreadsheetId,
+        range: `${SHEET_NAMES.DEADLINES}!A2`,
+        valueInputOption: "RAW",
+        requestBody: { values: [row] },
+      });
+      return deadline;
+    },
+
+    update: async (deadline: DeadlinePreset) => {
+      await this.ensureDeadlineSheet();
+      const res = await this.client.spreadsheets.values.get({
+        spreadsheetId: this.spreadsheetId,
+        range: `${SHEET_NAMES.DEADLINES}!A2:A`,
+      });
+      const rows = res.data.values || [];
+      const rowIndex = rows.findIndex((r) => r[0] === deadline.id);
+      if (rowIndex === -1) {
+        throw new Error(`Deadline with id ${deadline.id} not found.`);
+      }
+      const sheetRowNumber = rowIndex + 2;
+
+      const row = [
+        deadline.id,
+        deadline.name,
+        deadline.active ? "TRUE" : "FALSE",
+        deadline.sortOrder,
+        deadline.createdAt,
+        deadline.updatedAt,
+      ];
+
+      await this.client.spreadsheets.values.update({
+        spreadsheetId: this.spreadsheetId,
+        range: `${SHEET_NAMES.DEADLINES}!A${sheetRowNumber}:F${sheetRowNumber}`,
+        valueInputOption: "RAW",
+        requestBody: { values: [row] },
+      });
+      return deadline;
     },
   };
 

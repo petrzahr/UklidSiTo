@@ -42,3 +42,7 @@ export const roomSchema = z.object({
   active: z.boolean().default(true),
   sortOrder: z.number().int().default(0),
 });
+
+export const deadlineSchema = roomSchema.extend({
+  name: z.string().trim().min(1, "Název termínu je povinný").max(100),
+});

@@ -1,6 +1,6 @@
 # 🧹 UklidSiTo
 
-> **"Domácnost sama se neuklidí."**
+> **"Domácnost se sama neuklidí."**
 
 **UklidSiTo** je moderní, soukromá webová aplikace pro rychlou a hravou správu domácích úklidových úkolů. 
 
@@ -135,9 +135,11 @@ Aplikace poběží na `http://localhost:3000`.
 1. Vytvořte v Google Drive produkční tabulku `UklidSiTo - PRODUCTION`.
 2. Tabulku **nasdílejte e-mailu Service Accountu** jako **Editor** (`Editor / Úpravce`).
 3. Zkopírujte ID tabulky z URL adresy do `GOOGLE_SHEET_ID_PROD`.
-4. Po spuštění aplikace otevřete `Nastavení → Systém` a klikněte na **"Inicializovat tabulku"**. Aplikace automaticky a bezpečně (idempotentně) vytvoří potřebné záložky (`Tasks`, `People`, `TaskPresets`, `Rooms`, `ActivityLog`), záhlaví sloupců i výchozí předvolby úkolů a členů (Eva, Anna).
+4. Po spuštění aplikace otevřete `Nastavení → Systém` a klikněte na **"Inicializovat tabulku"**. Aplikace automaticky a bezpečně (idempotentně) vytvoří potřebné záložky (`Tasks`, `People`, `TaskPresets`, `Rooms`, `Deadlines`, `ActivityLog`), záhlaví sloupců i výchozí předvolby úkolů a členů (Eva, Anna).
 
 ---
+
+Termíny spravujte v `Nastavení → Termíny`: přidání, přejmenování a aktivace/deaktivace fungují stejně jako u místností. Aktivní volby se načítají při vytvoření i úpravě úkolu; vlastní text termínu a historické hodnoty úkolů zůstávají zachovány. Záložka `Deadlines` se při prvním použití automaticky vytvoří s původními pěti volbami, bez přepisování existujících dat.
 
 ### 3. Resend (E-mailová služba)
 

@@ -29,7 +29,7 @@ export function Header({ isLoggedIn }: { isLoggedIn?: boolean }) {
                 UklidSiTo
               </span>
               <span className="hidden sm:inline-block text-xs text-slate-500 ml-2">
-                Domácnost sama se neuklidí.
+                Domácnost se sama neuklidí.
               </span>
             </div>
           </div>
@@ -54,7 +54,7 @@ export function Header({ isLoggedIn }: { isLoggedIn?: boolean }) {
               <Sparkles className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
             </div>
             <p className="text-[11px] text-slate-500 font-medium hidden sm:block">
-              Domácnost sama se neuklidí.
+              Domácnost se sama neuklidí.
             </p>
           </div>
         </Link>

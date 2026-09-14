@@ -1,4 +1,4 @@
-import { Person, Room, TaskPreset } from "@/types";
+import { DeadlinePreset, Person, Room, TaskPreset } from "@/types";
 
 export const INITIAL_PEOPLE: Omit<Person, "createdAt" | "updatedAt">[] = [
   {
@@ -77,3 +77,8 @@ export const INITIAL_PRESETS: Omit<TaskPreset, "createdAt" | "updatedAt">[] = [
   { id: "tp-g5", name: "Uklidit po sobě", category: "General", icon: "🧹", active: true, sortOrder: 54 },
   { id: "tp-g6", name: "Ukliď si ten bordel!", category: "General", icon: "💥", active: true, sortOrder: 55 },
 ];
+
+export const INITIAL_DEADLINES: Omit<DeadlinePreset, "createdAt" | "updatedAt">[] =
+  ["Dnes", "Dnes večer", "Zítra", "Do pátku", "O víkendu"].map((name, index) => ({
+    id: `d-${index + 1}`, name, active: true, sortOrder: index + 1,
+  }));

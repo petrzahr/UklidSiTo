@@ -1,5 +1,6 @@
 import {
   ActivityLogEntry,
+  DeadlinePreset,
   Person,
   Room,
   Task,
@@ -13,13 +14,14 @@ import {
   IRoomRepository,
   ITaskRepository,
 } from "./interfaces";
-import { INITIAL_PEOPLE, INITIAL_PRESETS, INITIAL_ROOMS } from "./seed-data";
+import { INITIAL_PEOPLE, INITIAL_PRESETS, INITIAL_ROOMS, INITIAL_DEADLINES } from "./seed-data";
 
 export class MemoryDataStore implements IDataStore {
   private _tasks: Task[] = [];
   private _people: Person[] = [];
   private _presets: TaskPreset[] = [];
   private _rooms: Room[] = [];
+  private _deadlines: DeadlinePreset[] = [];
   private _activity: ActivityLogEntry[] = [];
   private _initialized = false;
 
@@ -29,6 +31,7 @@ export class MemoryDataStore implements IDataStore {
       this._people = INITIAL_PEOPLE.map((p) => ({ ...p, createdAt: now, updatedAt: now }));
       this._presets = INITIAL_PRESETS.map((p) => ({ ...p, createdAt: now, updatedAt: now }));
       this._rooms = INITIAL_ROOMS.map((r) => ({ ...r, createdAt: now, updatedAt: now }));
+      this._deadlines = INITIAL_DEADLINES.map((d) => ({ ...d, createdAt: now, updatedAt: now }));
       this._initialized = true;
     }
   }
@@ -44,6 +47,9 @@ export class MemoryDataStore implements IDataStore {
     }
     if (this._rooms.length === 0) {
       this._rooms = INITIAL_ROOMS.map((r) => ({ ...r, createdAt: now, updatedAt: now }));
+    }
+    if (this._deadlines.length === 0) {
+      this._deadlines = INITIAL_DEADLINES.map((d) => ({ ...d, createdAt: now, updatedAt: now }));
     }
     this._initialized = true;
   }
@@ -119,6 +125,24 @@ export class MemoryDataStore implements IDataStore {
         this._rooms.push({ ...room });
       }
       return { ...room };
+    },
+  };
+
+  deadlines: IRoomRepository = {
+    getAll: async () => [...this._deadlines].sort((a, b) => a.sortOrder - b.sortOrder),
+    getById: async (id) => this._deadlines.find((r) => r.id === id) || null,
+    create: async (deadline) => {
+      this._deadlines.push({ ...deadline });
+      return { ...deadline };
+    },
+    update: async (deadline) => {
+      const idx = this._deadlines.findIndex((r) => r.id === deadline.id);
+      if (idx >= 0) {
+        this._deadlines[idx] = { ...deadline };
+      } else {
+        this._deadlines.push({ ...deadline });
+      }
+      return { ...deadline };
     },
   };
 

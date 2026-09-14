@@ -1,6 +1,6 @@
 "use client";
 
-import { Person, Room, TaskPreset } from "@/types";
+import { DeadlinePreset, Person, Room, TaskPreset } from "@/types";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createTaskAction } from "@/app/actions/task-actions";
@@ -11,9 +11,10 @@ interface Props {
   people: Person[];
   presets: TaskPreset[];
   rooms: Room[];
+  deadlines: DeadlinePreset[];
 }
 
-export function TaskCreationForm({ people, presets, rooms }: Props) {
+export function TaskCreationForm({ people, presets, rooms, deadlines }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
@@ -166,9 +167,6 @@ export function TaskCreationForm({ people, presets, rooms }: Props) {
       </div>
     );
   }
-
-  // Quick deadline buttons
-  const quickDeadlines = ["Dnes", "Dnes večer", "Zítra", "Do pátku", "O víkendu"];
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl mx-auto pb-12">
@@ -393,18 +391,18 @@ export function TaskCreationForm({ people, presets, rooms }: Props) {
             Termín
           </span>
           <div className="flex flex-wrap gap-1.5 mb-2">
-            {quickDeadlines.map((qd) => (
+            {deadlines.map((qd) => (
               <button
                 type="button"
-                key={qd}
-                onClick={() => setDeadline(qd)}
+                key={qd.id}
+                onClick={() => setDeadline(qd.name)}
                 className={`px-2.5 py-1 rounded-md text-xs font-medium border ${
-                  deadline === qd
+                  deadline === qd.name
                     ? "bg-rose-50 border-rose-400 text-rose-700 font-bold"
                     : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"
                 }`}
               >
-                {qd}
+                {qd.name}
               </button>
             ))}
           </div>
