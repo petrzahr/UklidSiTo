@@ -212,7 +212,7 @@ export function TaskCreationForm({ people, presets, rooms }: Props) {
 
         {/* Presets grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-          {presets.slice(0, 11).map((preset) => {
+          {presets.map((preset) => {
             const isSelected = selectedPresetId === preset.id;
             return (
               <button
