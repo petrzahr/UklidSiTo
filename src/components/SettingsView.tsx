@@ -30,11 +30,8 @@ interface Props {
   presets: TaskPreset[];
   rooms: Room[];
   systemInfo: {
-    env: string;
-    isProduction: boolean;
     maskedSheetId: string;
     storageType: string;
-    testEmailRecipient?: string;
     adminEmail: string;
   };
 }
@@ -862,15 +859,13 @@ export function SettingsView({ people, presets, rooms, systemInfo }: Props) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
             <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
               <span className="text-slate-400 font-medium block mb-1">
-                Aktivní prostředí (APP_ENV)
+                Konfigurace
               </span>
               <span className="font-mono font-bold text-sm text-slate-900 uppercase">
-                {systemInfo.env}
+                production
               </span>
               <p className="text-[11px] text-slate-500 mt-1">
-                {systemInfo.isProduction
-                  ? "Produkční režim. Používá produkční tabulku a skutečné e-maily příjemců."
-                  : "Neprodukční režim. Data jsou striktně oddělena a e-maily přesměrovány."}
+                Produkční režim. Používá produkční tabulku a skutečné e-maily příjemců.
               </p>
             </div>
 
@@ -892,15 +887,6 @@ export function SettingsView({ people, presets, rooms, systemInfo }: Props) {
               </span>
               <span className="font-mono font-bold text-sm text-slate-900">
                 {systemInfo.adminEmail || "Nenastaveno"}
-              </span>
-            </div>
-
-            <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
-              <span className="text-slate-400 font-medium block mb-1">
-                Příjemce testovacích e-mailů
-              </span>
-              <span className="font-mono font-bold text-sm text-slate-900">
-                {systemInfo.testEmailRecipient || "Pouze simulace v konzoli"}
               </span>
             </div>
           </div>

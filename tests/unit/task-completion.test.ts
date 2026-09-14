@@ -8,8 +8,7 @@ describe("Task Completion & Idempotency", () => {
   let testStore: MemoryDataStore;
 
   beforeEach(() => {
-    process.env.APP_ENV = "development";
-    process.env.GOOGLE_SHEET_ID_TEST = "test-sheet-id";
+    process.env.GOOGLE_SHEET_ID_PROD = "test-sheet-id";
     process.env.ADMIN_EMAIL = "admin@example.com";
 
     testStore = new MemoryDataStore(true);

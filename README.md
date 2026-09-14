@@ -15,9 +15,7 @@ Správce domácnosti (administrátor) jednoduše vybere úkol, zvolí provinilce
 - **Kryptografické tokeny**: V Google Sheets se nikdy neukládají surové tokeny, ale pouze jejich kryptografický hash `SHA-256(token)`.
 - **Rotace tokenu při přeřazení**: Pokud administrátor změní řešitele úkolu, původní odkaz je okamžitě zneplatněn a nový řešitel obdrží nový unikátní odkaz.
 - **Idempotence**: Opakované otevření či potvrzení již splněného úkolu nepřepisuje původní datum splnění a bezpečně zobrazí hravou potvrzovací obrazovku.
-- **Přísná izolace prostředí**:
-  - **PROD**: Používá produkční Google tabulku (`GOOGLE_SHEET_ID_PROD`) a e-maily odesílá na reálné adresy.
-  - **DEV / PREVIEW**: Používá výhradně testovací tabulku (`GOOGLE_SHEET_ID_TEST`) a **veškeré** odchozí e-maily přesměrovává na `TEST_EMAIL_RECIPIENT`. Nikdy nemůže dojít k nechtěnému odeslání testovacích e-mailů rodině.
+- **Produkční konfigurace**: Používá tabulku `GOOGLE_SHEET_ID_PROD` a e-maily odesílá na adresy řešitelů.
 - **Trvalé snapshoty**: Úkoly si ukládají snapshot názvu úkolu, místnosti i jména/e-mailu řešitele v době zadání. Historie zůstává 100% čitelná i po pozdějším přejmenování či deaktivaci předvoleb nebo členů.
 - **Hravá osobnost**: Vtipné hlášky v češtině ("Co je zase potřeba uklidit?", "Kdo to schytá?", "Pachatel byl informován.", "✅ Uklizeno!").
 
@@ -49,19 +47,19 @@ UklidSiTo/
 │   │   ├── task/[token]/             # Veřejná read-only stránka pro potvrzení
 │   │   ├── tasks/new/                # Rychlé zadání úkolu (karty, oběti, detaily)
 │   │   ├── tasks/[id]/edit/          # Úprava úkolu, rotace tokenu a storno
-│   │   ├── layout.tsx                # Globální layout s DEV/TEST bannerem
+│   │   ├── layout.tsx                # Globální layout
 │   │   └── page.tsx                  # Dashboard administrátora (přehledy, filtry)
 │   ├── components/                   # UI komponenty (Header, TaskCard, Formy)
 │   ├── lib/
 │   │   ├── auth/                     # NextAuth konfigurace a session guard
-│   │   ├── config/                   # Centralizovaná konfigurace (striktní izolace)
+│   │   ├── config/                   # Produkční konfigurace
 │   │   ├── security/                 # Generování tokenů a SHA-256 verifikace
 │   │   └── validation/               # Zod schémata pro validaci vstupů
 │   ├── repositories/                 # Datová vrstva (Google Sheets & In-Memory Store)
 │   ├── services/                     # Aplikační logika (TaskService, EmailService, ...)
 │   └── types/                        # Doménové TypeScript typy
 ├── tests/
-│   └── unit/                         # Testy izolace, tokenů, e-mailů, idempotence
+│   └── unit/                         # Testy konfigurace, tokenů, e-mailů, idempotence
 ├── .env.example                      # Šablona proměnných prostředí
 └── README.md
 ```
@@ -86,14 +84,12 @@ cp .env.example .env.local
 ```
 
 Vyplňte `.env.local`:
-- `APP_ENV=development`
 - `ADMIN_EMAIL=vas-email@gmail.com`
-- `GOOGLE_SHEET_ID_TEST=id-vasi-testovaci-google-tabulky`
-- `TEST_EMAIL_RECIPIENT=vas-testovaci-inbox@gmail.com`
+- `GOOGLE_SHEET_ID_PROD=id-vasi-produkcni-google-tabulky`
 - `NEXT_PUBLIC_GOOGLE_CLIENT_ID=vas-google-client-id.apps.googleusercontent.com`
 - `SESSION_SECRET=vase-nahodne-tajne-heslo-min-32-znaku`
 
-*(Poznámka: Pokud ještě nemáte vytvořený Google Service Account, aplikace v development režimu automaticky použije in-memory úložiště, takže můžete UI a toky okamžitě testovat.)*
+*(Poznámka: Pokud ještě nemáte vytvořený Google Service Account, aplikace automaticky použije in-memory úložiště, stejně jako dosud v produkci.)*
 
 ### 3. Spuštění testů
 
@@ -134,15 +130,11 @@ Aplikace poběží na `http://localhost:3000`.
 
 ---
 
-### 2. Google Sheets (PROD vs TEST)
+### 2. Google Sheets
 
-1. Vytvořte v Google Drive **dvě samostatné tabulky**:
-   - `UklidSiTo - PRODUCTION`
-   - `UklidSiTo - TEST`
-2. Obě tabulky **nasdílejte e-mailu Service Accountu** jako **Editor** (`Editor / Úpravce`).
-3. Zkopírujte ID tabulek z URL adresy do proměnných:
-   - `GOOGLE_SHEET_ID_PROD`
-   - `GOOGLE_SHEET_ID_TEST`
+1. Vytvořte v Google Drive produkční tabulku `UklidSiTo - PRODUCTION`.
+2. Tabulku **nasdílejte e-mailu Service Accountu** jako **Editor** (`Editor / Úpravce`).
+3. Zkopírujte ID tabulky z URL adresy do `GOOGLE_SHEET_ID_PROD`.
 4. Po spuštění aplikace otevřete `Nastavení → Systém` a klikněte na **"Inicializovat tabulku"**. Aplikace automaticky a bezpečně (idempotentně) vytvoří potřebné záložky (`Tasks`, `People`, `TaskPresets`, `Rooms`, `ActivityLog`), záhlaví sloupců i výchozí předvolby úkolů a členů (Eva, Anna).
 
 ---
@@ -151,57 +143,27 @@ Aplikace poběží na `http://localhost:3000`.
 
 1. Vytvořte si účet na [Resend.com](https://resend.com/).
 2. Vygenerujte API klíč v sekci **API Keys** a uložte jej do `RESEND_API_KEY`.
-3. Pro produkci ověřte doménu `uklidsito.byzahr.app` a nastavte `EMAIL_FROM=UklidSiTo <uklid@uklidsito.byzahr.app>`. Pro testování lze použít `onboarding@resend.dev`.
+3. Pro produkci ověřte doménu `uklidsito.byzahr.app` a nastavte `EMAIL_FROM=UklidSiTo <uklid@uklidsito.byzahr.app>`.
 
 ---
 
-## 🔒 Přehled proměnných prostředí podle prostředí
+## 🔒 Produkční konfigurace
 
-| Proměnná | Lokální vývoj (`.env.local`) | Vercel Preview | Vercel Production |
-| :--- | :--- | :--- | :--- |
-| `APP_ENV` | `development` | `preview` | `production` |
-| `APP_BASE_URL` | `http://localhost:3000` | `https://${VERCEL_URL}` | `https://uklidsito.byzahr.app` |
-| `ADMIN_EMAIL` | Váš Google e-mail | Váš Google e-mail | Váš Google e-mail |
-| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | OAuth Client ID | OAuth Client ID | OAuth Client ID |
-| `SESSION_SECRET` | Bezpečný náhodný řetězec (32+ znaků) | Bezpečný náhodný řetězec | Bezpečný náhodný řetězec |
-| `GOOGLE_SHEET_ID_PROD` | *(nevyplňovat nebo testovací)* | *(nevyplňovat)* | **ID produkční tabulky** |
-| `GOOGLE_SHEET_ID_TEST` | **ID testovací tabulky** | **ID testovací tabulky** | *(nevyplňovat)* |
-| `TEST_EMAIL_RECIPIENT` | Váš testovací inbox | Váš testovací inbox | *(nevyplňovat)* |
-| `GOOGLE_SERVICE_ACCOUNT_EMAIL`| E-mail service accountu | E-mail service accountu | E-mail service accountu |
-| `GOOGLE_PRIVATE_KEY` | Privátní klíč | Privátní klíč | Privátní klíč |
-| `RESEND_API_KEY` | Resend API klíč | Resend API klíč | Resend API klíč |
-| `EMAIL_FROM` | `onboarding@resend.dev` | `onboarding@resend.dev` | `UklidSiTo <uklid@uklidsito.byzahr.app>` |
+Aplikace používá jedinou konfiguraci i při spuštění vývojového serveru. E-maily směřují přímo řešitelům a data do produkční tabulky. Session cookies vždy vyžadují zabezpečené spojení a platný `SESSION_SECRET`.
 
----
+| Proměnná | Produkční hodnota |
+| :--- | :--- |
+| `APP_BASE_URL` | `https://uklidsito.byzahr.app` |
+| `ADMIN_EMAIL` | Váš Google e-mail |
+| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | OAuth Client ID |
+| `SESSION_SECRET` | Bezpečný náhodný řetězec |
+| `GOOGLE_SHEET_ID_PROD` | **ID produkční tabulky** |
+| `GOOGLE_SERVICE_ACCOUNT_EMAIL` | E-mail service accountu |
+| `GOOGLE_PRIVATE_KEY` | Privátní klíč |
+| `RESEND_API_KEY` | Resend API klíč |
+| `EMAIL_FROM` | `UklidSiTo <uklid@uklidsito.byzahr.app>` |
 
-## 🧪 Bezpečný testovací postup v TEST před spuštěním PROD
-
-Před přepnutím do produkce proveďte tento testovací scénář:
-
-1. **Ověření prostředí**:
-   - V horní liště aplikace musí svítit žlutý badge `DEV (TEST DATA)` nebo `PREVIEW / TEST`.
-   - V `Nastavení → Systém` ověřte, že aktivní tabulka odpovídá `GOOGLE_SHEET_ID_TEST`.
-2. **Přihlášení administrátora**:
-   - Přihlaste se přes Google účet shodný s `ADMIN_EMAIL`. Přihlášení musí projít.
-   - Zkuste se přihlásit jakýmkoliv jiným Google účtem. Přihlášení musí být okamžitě zamítnuto chybou "Přístup odepřen".
-3. **Zadání úkolu**:
-   - Klikněte na `+ NAHLÁSIT BORDEL`.
-   - Zvolte úkol `🍽️ Vyklidit myčku`, vyberte `Eva`, přidejte poznámku a klikněte na `ZADAT ÚKOL`.
-   - Zobrazí se `✅ Pachatel byl informován.`
-4. **Ověření e-mailu**:
-   - Zkontrolujte schránku zadanou v `TEST_EMAIL_RECIPIENT`.
-   - E-mail musí obsahovat varovný banner: `⚠️ TEST EMAIL - Původní příjemce: Eva <eva@example.com>`. Reálná Eva žádný e-mail neobdrží.
-5. **Ověření bezpečnosti odkazu (Read-Only GET)**:
-   - Zkopírujte odkaz z e-mailu a otevřete jej v prohlížeči.
-   - Stránka se zobrazí, ale úkol na dashboardu **musí zůstat v záložce "Aktivní"**.
-6. **Potvrzení splnění**:
-   - Na stránce úkolu klikněte na velké zelené tlačítko `MÁM HOTOVO`.
-   - Zobrazí se hravé potvrzení (např. `✅ Uklizeno!`).
-   - Na dashboardu se úkol přesune do záložky `Hotovo`.
-7. **Idempotence**:
-   - Znovu obnovte odkaz v prohlížeči. Zobrazí se informace: `✅ Tento úkol už je splněný.` Původní čas splnění zůstane nezměněn.
-8. **Zrušení a rotace**:
-   - Zkuste vytvořit nový úkol a následně v editaci změnit řešitele z Evy na Annu. Ověřte, že starý odkaz přestane fungovat a vygeneruje se nový.
+Automatizované testy používají in-memory úložiště a mocky nezávisle na konfiguraci aplikace. Spouštějí se příkazem `npm test`.
 
 ---
 

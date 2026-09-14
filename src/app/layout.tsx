@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
-import { EnvironmentBadge } from "@/components/EnvironmentBadge";
 import { Header } from "@/components/Header";
 import { getSession } from "@/lib/auth/session";
 
@@ -31,7 +30,6 @@ export default async function RootLayout({
   return (
     <html lang="cs">
       <body className="antialiased min-h-screen flex flex-col bg-slate-50 text-slate-900">
-        <EnvironmentBadge />
         <Header isLoggedIn={isLoggedIn} />
         <main className="flex-1 w-full max-w-5xl mx-auto px-4 py-6">
           {children}

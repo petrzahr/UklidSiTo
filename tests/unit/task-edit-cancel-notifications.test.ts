@@ -12,10 +12,8 @@ describe("Task Edit and Cancel Notification Emails", () => {
 
   beforeEach(() => {
     resetConfigCache();
-    process.env.APP_ENV = "development";
-    process.env.GOOGLE_SHEET_ID_TEST = "test-sheet-id";
+    process.env.GOOGLE_SHEET_ID_PROD = "test-sheet-id";
     process.env.ADMIN_EMAIL = "admin@example.com";
-    process.env.TEST_EMAIL_RECIPIENT = "tester@byzahr.app";
     resetConfigCache();
 
     testStore = new MemoryDataStore(true);
@@ -71,7 +69,6 @@ describe("Task Edit and Cancel Notification Emails", () => {
     emailService.sendTaskUpdatedEmail = async () => ({
       success: false,
       error: "Resend API connection timeout",
-      isTestRedirected: true,
       deliveredTo: "tester@byzahr.app",
     });
 
@@ -134,7 +131,6 @@ describe("Task Edit and Cancel Notification Emails", () => {
     emailService.sendTaskCancelledEmail = async () => ({
       success: false,
       error: "SMTP failure",
-      isTestRedirected: true,
       deliveredTo: "tester@byzahr.app",
     });
 

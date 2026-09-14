@@ -22,14 +22,11 @@ export default async function SettingsPage() {
   const storageType =
     config.googleServiceAccountEmail && config.googlePrivateKey
       ? "Google Sheets API (Service Account)"
-      : "In-Memory Store (Dev / Preview)";
+      : "In-Memory Store";
 
   const systemInfo = {
-    env: config.env,
-    isProduction: config.isProduction,
     maskedSheetId,
     storageType,
-    testEmailRecipient: config.testEmailRecipient,
     adminEmail: config.adminEmail,
   };
 

@@ -1,9 +1,14 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { EmailService } from "@/services/email-service";
 import { Task } from "@/types";
 import { resetConfigCache } from "@/lib/config/env";
 
-describe("Email Safety Layer", () => {
+const { send } = vi.hoisted(() => ({ send: vi.fn() }));
+vi.mock("resend", () => ({
+  Resend: class { emails = { send }; },
+}));
+
+describe("Task Email Delivery", () => {
   const dummyTask: Task = {
     id: "task-1",
     taskName: "Vysát obývák",
@@ -18,47 +23,40 @@ describe("Email Safety Layer", () => {
   };
 
   beforeEach(() => {
+    send.mockReset();
+    send.mockResolvedValue({ data: { id: "message-1" }, error: null });
     resetConfigCache();
     process.env.ADMIN_EMAIL = "admin@example.com";
-    process.env.GOOGLE_SHEET_ID_TEST = "test-sheet-id";
-    delete process.env.GOOGLE_SHEET_ID_PROD;
-  });
-
-  it("redirects emails to TEST_EMAIL_RECIPIENT when not in production", async () => {
-    process.env.APP_ENV = "development";
-    process.env.TEST_EMAIL_RECIPIENT = "tester@byzahr.app";
-    resetConfigCache();
-
-    const emailService = new EmailService();
-    const result = await emailService.sendTaskEmail(dummyTask, "sampletoken123");
-
-    expect(result.isTestRedirected).toBe(true);
-    expect(result.deliveredTo).toBe("tester@byzahr.app");
-    expect(result.deliveredTo).not.toBe("eva.real@example.com");
-  });
-
-  it("blocks sending to real recipient in non-prod if TEST_EMAIL_RECIPIENT is missing", async () => {
-    process.env.APP_ENV = "development";
-    delete process.env.TEST_EMAIL_RECIPIENT;
-    resetConfigCache();
-
-    const emailService = new EmailService();
-    const result = await emailService.sendTaskEmail(dummyTask, "sampletoken123");
-
-    expect(result.isTestRedirected).toBe(true);
-    expect(result.deliveredTo).toBe("BLOCKED_NO_TEST_RECIPIENT");
-    expect(result.deliveredTo).not.toBe("eva.real@example.com");
+    delete process.env.RESEND_API_KEY;
   });
 
   it("sends to actual assignee when in production", async () => {
-    process.env.APP_ENV = "production";
     process.env.GOOGLE_SHEET_ID_PROD = "prod-sheet-id";
     resetConfigCache();
 
     const emailService = new EmailService();
     const result = await emailService.sendTaskEmail(dummyTask, "sampletoken123");
 
-    expect(result.isTestRedirected).toBe(false);
     expect(result.deliveredTo).toBe("eva.real@example.com");
   });
+  it.each(["sendTaskEmail", "sendTaskUpdatedEmail", "sendTaskCancelledEmail"] as const)(
+    "%s delivers through Resend to the assignee without a test banner",
+    async (method) => {
+      process.env.RESEND_API_KEY = "mock-key";
+      const result = await new EmailService()[method](dummyTask, "sampletoken123");
+      expect(result.success).toBe(true);
+      expect(result.deliveredTo).toBe(dummyTask.assigneeEmail);
+      expect(send).toHaveBeenCalledWith(expect.objectContaining({
+        to: dummyTask.assigneeEmail,
+        from: "UklidSiTo <uklid@uklidsito.byzahr.app>",
+      }));
+      const html = send.mock.calls[0][0].html;
+      expect(html).not.toContain("TEST EMAIL");
+      if (method === "sendTaskCancelledEmail") {
+        expect(html).not.toContain("/task/sampletoken123");
+      } else {
+        expect(html).toContain("https://uklidsito.byzahr.app/task/sampletoken123");
+      }
+    }
+  );
 });

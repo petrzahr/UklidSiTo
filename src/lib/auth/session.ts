@@ -44,10 +44,7 @@ async function verify(payload: string, signature: string, secret: string): Promi
 function getSessionSecret(): string {
   const s = process.env.SESSION_SECRET;
   if (!s || s.length < 32) {
-    if (process.env.APP_ENV === "production" || process.env.NODE_ENV === "production") {
-      throw new Error("SESSION_SECRET is required in production (min 32 chars).");
-    }
-    return "dev-insecure-session-secret-uklidsito-local";
+    throw new Error("SESSION_SECRET is required in production (min 32 chars).");
   }
   return s;
 }
@@ -129,11 +126,10 @@ export async function requireAdminSession(
 export async function setSessionCookie(email: string): Promise<void> {
   const value = await createSession(email);
   const cookieStore = await cookies();
-  const isProduction = process.env.APP_ENV === "production" || process.env.NODE_ENV === "production";
 
   cookieStore.set(SESSION_COOKIE_NAME, value, {
     httpOnly: true,
-    secure: isProduction,
+    secure: true,
     sameSite: "lax",
     path: "/",
     maxAge: SESSION_TTL_SECONDS,
@@ -145,10 +141,9 @@ export async function setSessionCookie(email: string): Promise<void> {
  */
 export async function clearSessionCookie(): Promise<void> {
   const cookieStore = await cookies();
-  const isProduction = process.env.APP_ENV === "production" || process.env.NODE_ENV === "production";
   cookieStore.set(SESSION_COOKIE_NAME, "", {
     httpOnly: true,
-    secure: isProduction,
+    secure: true,
     sameSite: "lax",
     path: "/",
     maxAge: 0,

@@ -14,7 +14,7 @@ export function getDataStore(): IDataStore {
   if (config.googleServiceAccountEmail && config.googlePrivateKey && config.sheetId) {
     dataStoreInstance = new GoogleSheetsDataStore(config.sheetId);
   } else {
-    // If running in development/preview without Google Cloud credentials yet, fall back to in-memory store
+    // Without Google Cloud credentials, fall back to the existing in-memory store
     console.warn(
       "[DataStore Warning] Google Service Account credentials not provided. Using in-memory store."
     );

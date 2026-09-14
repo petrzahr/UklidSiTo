@@ -122,7 +122,7 @@ export class TaskService {
         "EMAIL_SENT",
         task.id,
         actor,
-        `E-mail odeslán na ${emailResult.deliveredTo}${emailResult.isTestRedirected ? " (test přesměrování)" : ""}`
+        `E-mail odeslán na ${emailResult.deliveredTo}`
       );
     } else {
       console.error(
@@ -215,7 +215,7 @@ export class TaskService {
           "EMAIL_SENT",
           task.id,
           actor,
-          `E-mail o zrušení úkolu odeslán na ${emailResult.deliveredTo}${emailResult.isTestRedirected ? " (test)" : ""}`
+          `E-mail o zrušení úkolu odeslán na ${emailResult.deliveredTo}`
         );
         return { task, emailResult, emailWarning: null };
       } else {
@@ -311,7 +311,7 @@ export class TaskService {
           "EMAIL_SENT",
           task.id,
           actor,
-          `E-mail o úpravě úkolu odeslán na ${emailResult.deliveredTo}${emailResult.isTestRedirected ? " (test)" : ""}`
+          `E-mail o úpravě úkolu odeslán na ${emailResult.deliveredTo}`
         );
         return { task, emailResult, emailWarning: null };
       } else {

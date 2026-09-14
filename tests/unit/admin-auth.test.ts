@@ -9,8 +9,7 @@ import { getAppConfig, resetConfigCache } from "@/lib/config/env";
 describe("Administrator Authorization", () => {
   beforeEach(() => {
     resetConfigCache();
-    process.env.APP_ENV = "development";
-    process.env.GOOGLE_SHEET_ID_TEST = "test-sheet-id";
+    process.env.GOOGLE_SHEET_ID_PROD = "test-sheet-id";
     process.env.ADMIN_EMAIL = "petr@byzahr.app";
     resetConfigCache();
   });
@@ -21,8 +20,7 @@ describe("Administrator Authorization", () => {
 
   it("permits sign in only for ADMIN_EMAIL", () => {
     const config = getAppConfig({
-      APP_ENV: "development",
-      GOOGLE_SHEET_ID_TEST: "test-sheet-id",
+      GOOGLE_SHEET_ID_PROD: "test-sheet-id",
       ADMIN_EMAIL: "petr@byzahr.app",
     });
     expect(isAllowed("petr@byzahr.app", config.adminEmail)).toBe(true);
@@ -30,8 +28,7 @@ describe("Administrator Authorization", () => {
 
   it("permits sign in case-insensitively", () => {
     const config = getAppConfig({
-      APP_ENV: "development",
-      GOOGLE_SHEET_ID_TEST: "test-sheet-id",
+      GOOGLE_SHEET_ID_PROD: "test-sheet-id",
       ADMIN_EMAIL: "petr@byzahr.app",
     });
     expect(isAllowed("Petr@ByZahr.App", config.adminEmail)).toBe(true);
@@ -39,8 +36,7 @@ describe("Administrator Authorization", () => {
 
   it("rejects an unauthorized account", () => {
     const config = getAppConfig({
-      APP_ENV: "development",
-      GOOGLE_SHEET_ID_TEST: "test-sheet-id",
+      GOOGLE_SHEET_ID_PROD: "test-sheet-id",
       ADMIN_EMAIL: "petr@byzahr.app",
     });
     expect(isAllowed("stranger@gmail.com", config.adminEmail)).toBe(false);
@@ -48,8 +44,7 @@ describe("Administrator Authorization", () => {
 
   it("rejects household member emails that are not ADMIN_EMAIL", () => {
     const config = getAppConfig({
-      APP_ENV: "development",
-      GOOGLE_SHEET_ID_TEST: "test-sheet-id",
+      GOOGLE_SHEET_ID_PROD: "test-sheet-id",
       ADMIN_EMAIL: "petr@byzahr.app",
     });
     expect(isAllowed("eva@example.com", config.adminEmail)).toBe(false);

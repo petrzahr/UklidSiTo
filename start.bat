@@ -60,7 +60,7 @@ if not exist ".env.local" (
 
 echo [INFO] Starting UklidSiTo...
 echo [INFO] URL: http://localhost:3000
-echo [INFO] Environment: DEVELOPMENT
+echo [INFO] Application configuration: PRODUCTION
 echo.
 echo Press Ctrl+C to stop the server.
 echo.

@@ -6,7 +6,6 @@ export interface SendTaskEmailResult {
   success: boolean;
   messageId?: string;
   error?: string;
-  isTestRedirected: boolean;
   deliveredTo: string;
 }
 
@@ -20,72 +19,22 @@ export class EmailService {
     }
   }
 
-  /**
-   * Resolves recipient email address strictly upholding production vs non-production safety.
-   */
-  private resolveRecipient(task: Task): {
-    destinationEmail: string;
-    isTestRedirected: boolean;
-    blocked: boolean;
-  } {
-    const config = getConfig();
-    const isProd = config.isProduction;
-
-    if (isProd) {
-      return {
-        destinationEmail: task.assigneeEmail,
-        isTestRedirected: false,
-        blocked: false,
-      };
-    }
-
-    if (config.testEmailRecipient) {
-      return {
-        destinationEmail: config.testEmailRecipient,
-        isTestRedirected: true,
-        blocked: false,
-      };
-    }
-
-    console.warn(
-      `[Email Safety] Blocking email to "${task.assigneeEmail}" in non-prod environment: TEST_EMAIL_RECIPIENT is not configured.`
-    );
-    return {
-      destinationEmail: "BLOCKED_NO_TEST_RECIPIENT",
-      isTestRedirected: true,
-      blocked: true,
-    };
-  }
-
-  private buildTestBannerHtml(isTestRedirected: boolean, task: Task): string {
-    if (!isTestRedirected) return "";
-    return `
-      <div style="background-color: #fef2f2; border: 2px dashed #dc2626; border-radius: 8px; padding: 12px; margin-bottom: 20px; font-family: sans-serif; color: #991b1b;">
-        <strong style="font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em;">⚠️ TEST EMAIL</strong><br>
-        <span style="font-size: 13px;">Tento e-mail byl v testovacím prostředí přesměrován.</span><br>
-        <span style="font-size: 13px;"><strong>Původní příjemce:</strong> ${task.assigneeName} &lt;${task.assigneeEmail}&gt;</span>
-      </div>
-    `;
-  }
-
   private async dispatchEmail(
     subject: string,
     html: string,
     destinationEmail: string,
-    isTestRedirected: boolean,
     completionUrlForLog?: string
   ): Promise<SendTaskEmailResult> {
     const config = getConfig();
 
     if (!this.resend) {
-      console.log(`[Email Simulated] Subject: "${subject}" -> To: "${destinationEmail}" (isTestRedirected: ${isTestRedirected})`);
+      console.log(`[Email Simulated] Subject: "${subject}" -> To: "${destinationEmail}"`);
       if (completionUrlForLog) {
         console.log(`[Email Simulated] Completion URL: ${completionUrlForLog}`);
       }
       return {
         success: true,
         messageId: `simulated-${Date.now()}`,
-        isTestRedirected,
         deliveredTo: destinationEmail,
       };
     }
@@ -103,7 +52,6 @@ export class EmailService {
         return {
           success: false,
           error: response.error.message,
-          isTestRedirected,
           deliveredTo: destinationEmail,
         };
       }
@@ -111,7 +59,6 @@ export class EmailService {
       return {
         success: true,
         messageId: response.data?.id,
-        isTestRedirected,
         deliveredTo: destinationEmail,
       };
     } catch (err: unknown) {
@@ -120,7 +67,6 @@ export class EmailService {
       return {
         success: false,
         error: errorMsg,
-        isTestRedirected,
         deliveredTo: destinationEmail,
       };
     }
@@ -130,19 +76,11 @@ export class EmailService {
    * Sends a task assignment email for a newly created task.
    */
   async sendTaskEmail(task: Task, rawToken: string): Promise<SendTaskEmailResult> {
-    const { destinationEmail, isTestRedirected, blocked } = this.resolveRecipient(task);
-    if (blocked) {
-      return {
-        success: true,
-        isTestRedirected: true,
-        deliveredTo: destinationEmail,
-      };
-    }
+    const destinationEmail = task.assigneeEmail;
 
     const config = getConfig();
     const completionUrl = `${config.appBaseUrl}/task/${rawToken}`;
     const subject = `🧹 ${task.assigneeName}, máš nový úkol: ${task.taskName}`;
-    const testBannerHtml = this.buildTestBannerHtml(isTestRedirected, task);
 
     const roomHtml = task.roomName
       ? `<p style="margin: 6px 0; font-size: 16px; color: #374151;">🏠 <strong>Místnost:</strong> ${task.roomName}</p>`
@@ -170,8 +108,6 @@ export class EmailService {
       </head>
       <body style="margin: 0; padding: 24px; background-color: #f3f4f6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
         <div style="max-width: 540px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; padding: 28px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
-          ${testBannerHtml}
-          
           <div style="text-align: center; margin-bottom: 24px;">
             <div style="display: inline-block; font-size: 40px; line-height: 1; margin-bottom: 8px;">🧹</div>
             <h1 style="margin: 0; font-size: 22px; color: #111827; font-weight: 700;">UklidSiTo</h1>
@@ -209,7 +145,7 @@ export class EmailService {
     </html>
     `;
 
-    return this.dispatchEmail(subject, html, destinationEmail, isTestRedirected, completionUrl);
+    return this.dispatchEmail(subject, html, destinationEmail, completionUrl);
   }
 
   /**
@@ -217,19 +153,11 @@ export class EmailService {
    * Includes task details and a valid completion link.
    */
   async sendTaskUpdatedEmail(task: Task, rawToken: string): Promise<SendTaskEmailResult> {
-    const { destinationEmail, isTestRedirected, blocked } = this.resolveRecipient(task);
-    if (blocked) {
-      return {
-        success: true,
-        isTestRedirected: true,
-        deliveredTo: destinationEmail,
-      };
-    }
+    const destinationEmail = task.assigneeEmail;
 
     const config = getConfig();
     const completionUrl = `${config.appBaseUrl}/task/${rawToken}`;
     const subject = `🔄 ${task.assigneeName}, úkol byl upraven: ${task.taskName}`;
-    const testBannerHtml = this.buildTestBannerHtml(isTestRedirected, task);
 
     const roomHtml = task.roomName
       ? `<p style="margin: 6px 0; font-size: 16px; color: #374151;">🏠 <strong>Místnost:</strong> ${task.roomName}</p>`
@@ -257,8 +185,6 @@ export class EmailService {
       </head>
       <body style="margin: 0; padding: 24px; background-color: #f3f4f6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
         <div style="max-width: 540px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; padding: 28px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
-          ${testBannerHtml}
-          
           <div style="text-align: center; margin-bottom: 24px;">
             <div style="display: inline-block; font-size: 40px; line-height: 1; margin-bottom: 8px;">🧹</div>
             <h1 style="margin: 0; font-size: 22px; color: #111827; font-weight: 700;">UklidSiTo</h1>
@@ -300,7 +226,7 @@ export class EmailService {
     </html>
     `;
 
-    return this.dispatchEmail(subject, html, destinationEmail, isTestRedirected, completionUrl);
+    return this.dispatchEmail(subject, html, destinationEmail, completionUrl);
   }
 
   /**
@@ -308,17 +234,9 @@ export class EmailService {
    * Strictly does NOT contain any completion link.
    */
   async sendTaskCancelledEmail(task: Task, previousDeadline?: string | null): Promise<SendTaskEmailResult> {
-    const { destinationEmail, isTestRedirected, blocked } = this.resolveRecipient(task);
-    if (blocked) {
-      return {
-        success: true,
-        isTestRedirected: true,
-        deliveredTo: destinationEmail,
-      };
-    }
+    const destinationEmail = task.assigneeEmail;
 
     const subject = `❌ ${task.assigneeName}, úkol byl zrušen: ${task.taskName}`;
-    const testBannerHtml = this.buildTestBannerHtml(isTestRedirected, task);
 
     const roomHtml = task.roomName
       ? `<p style="margin: 6px 0; font-size: 15px; color: #374151;">🏠 <strong>Místnost:</strong> ${task.roomName}</p>`
@@ -339,8 +257,6 @@ export class EmailService {
       </head>
       <body style="margin: 0; padding: 24px; background-color: #f3f4f6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
         <div style="max-width: 540px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; padding: 28px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
-          ${testBannerHtml}
-          
           <div style="text-align: center; margin-bottom: 24px;">
             <div style="display: inline-block; font-size: 40px; line-height: 1; margin-bottom: 8px;">🧹</div>
             <h1 style="margin: 0; font-size: 22px; color: #111827; font-weight: 700;">UklidSiTo</h1>
@@ -375,7 +291,7 @@ export class EmailService {
     </html>
     `;
 
-    return this.dispatchEmail(subject, html, destinationEmail, isTestRedirected);
+    return this.dispatchEmail(subject, html, destinationEmail);
   }
 }
 
