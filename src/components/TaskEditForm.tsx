@@ -25,6 +25,7 @@ export function TaskEditForm({ task, people, rooms }: Props) {
   const [deadline, setDeadline] = useState<string>(task.deadline || "");
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [warningMessage, setWarningMessage] = useState<string | null>(null);
 
   const assigneeWillChange = assigneeId !== task.assigneeId;
 
@@ -41,10 +42,11 @@ export function TaskEditForm({ task, people, rooms }: Props) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
+    setWarningMessage(null);
 
     startTransition(async () => {
       try {
-        await editTaskAction({
+        const res = await editTaskAction({
           id: task.id,
           taskName: taskName.trim(),
           assigneeId,
@@ -54,7 +56,12 @@ export function TaskEditForm({ task, people, rooms }: Props) {
           deadline: deadline.trim() || null,
         });
 
-        router.push("/");
+        if (res.emailWarning) {
+          setWarningMessage(res.emailWarning);
+        } else {
+          router.push("/");
+          router.refresh();
+        }
       } catch (err: unknown) {
         setErrorMessage(
           err instanceof Error ? err.message : "Chyba při úpravě úkolu."
@@ -65,10 +72,17 @@ export function TaskEditForm({ task, people, rooms }: Props) {
 
   const handleCancel = () => {
     if (confirm("Opravdu zrušit tento úkol?")) {
+      setErrorMessage(null);
+      setWarningMessage(null);
       startTransition(async () => {
         try {
-          await cancelTaskAction(task.id);
-          router.push("/");
+          const res = await cancelTaskAction(task.id);
+          if (res.emailWarning) {
+            setWarningMessage(res.emailWarning);
+          } else {
+            router.push("/");
+            router.refresh();
+          }
         } catch (err: unknown) {
           setErrorMessage(
             err instanceof Error ? err.message : "Chyba při rušení úkolu."
@@ -107,6 +121,26 @@ export function TaskEditForm({ task, people, rooms }: Props) {
       {errorMessage && (
         <div className="p-4 bg-rose-50 border border-rose-200 text-rose-800 text-sm font-semibold rounded-xl">
           {errorMessage}
+        </div>
+      )}
+
+      {warningMessage && (
+        <div className="p-4 bg-amber-50 border border-amber-300 rounded-xl text-amber-900 text-xs">
+          <div className="flex items-center gap-2 font-bold mb-1">
+            <AlertTriangle className="w-4 h-4 text-amber-600" />
+            <span>Změny byly uloženy s upozorněním:</span>
+          </div>
+          <p>{warningMessage}</p>
+          <button
+            type="button"
+            onClick={() => {
+              router.push("/");
+              router.refresh();
+            }}
+            className="mt-3 inline-block px-3 py-1.5 bg-amber-700 hover:bg-amber-800 text-white font-bold rounded-lg transition-colors"
+          >
+            Rozumím, přejít na přehled
+          </button>
         </div>
       )}
 

@@ -25,10 +25,11 @@ export async function editTaskAction(data: EditTaskInput) {
 
   const parsed = editTaskSchema.parse(data);
   const taskService = getTaskService();
-  const task = await taskService.editTask(parsed, actor);
+  const result = await taskService.editTask(parsed, actor);
 
   revalidatePath("/");
-  return { success: true, task };
+  revalidatePath(`/tasks/${parsed.id}/edit`);
+  return { success: true, task: result.task, emailWarning: result.emailWarning };
 }
 
 export async function cancelTaskAction(id: string) {
@@ -36,10 +37,10 @@ export async function cancelTaskAction(id: string) {
   const actor = session.email;
 
   const taskService = getTaskService();
-  const task = await taskService.cancelTask(id, actor);
+  const result = await taskService.cancelTask(id, actor);
 
   revalidatePath("/");
-  return { success: true, task };
+  return { success: true, task: result.task, emailWarning: result.emailWarning };
 }
 
 export async function resendTaskEmailAction(id: string) {

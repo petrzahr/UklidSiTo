@@ -76,6 +76,13 @@ export class PeopleService {
         actor,
         `Deaktivován člen: ${updated.name}`
       );
+    } else if (!wasActive && updated.active) {
+      await getActivityService().log(
+        "PERSON_ACTIVATED",
+        id,
+        actor,
+        `Aktivován člen: ${updated.name}`
+      );
     } else {
       await getActivityService().log(
         "PERSON_UPDATED",

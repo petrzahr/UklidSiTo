@@ -71,6 +71,13 @@ export class RoomService {
         actor,
         `Deaktivována místnost: ${updated.name}`
       );
+    } else if (!wasActive && updated.active) {
+      await getActivityService().log(
+        "ROOM_ACTIVATED",
+        id,
+        actor,
+        `Aktivována místnost: ${updated.name}`
+      );
     } else {
       await getActivityService().log(
         "ROOM_UPDATED",

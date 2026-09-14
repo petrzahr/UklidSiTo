@@ -89,6 +89,13 @@ export class PresetService {
         actor,
         `Deaktivována předvolba: ${updated.name}`
       );
+    } else if (!wasActive && updated.active) {
+      await getActivityService().log(
+        "PRESET_ACTIVATED",
+        id,
+        actor,
+        `Aktivována předvolba: ${updated.name}`
+      );
     } else {
       await getActivityService().log(
         "PRESET_UPDATED",

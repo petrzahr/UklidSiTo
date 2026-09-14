@@ -176,20 +176,29 @@ export class TaskService {
   }
 
   /**
-   * Cancels an open task.
+   * Cancels an open task and dispatches a cancellation email to the assignee.
+   * Preserves task cancellation even if email delivery fails.
    */
-  async cancelTask(id: string, actor: string): Promise<Task> {
+  async cancelTask(id: string, actor: string): Promise<{ task: Task; emailResult?: SendTaskEmailResult; emailWarning?: string | null }> {
     const store = getDataStore();
     const task = await store.tasks.getById(id);
     if (!task) {
       throw new Error(`Úkol s ID ${id} nebyl nalezen.`);
     }
 
+    if (task.status === "CANCELLED") {
+      return { task, emailWarning: null };
+    }
+
+    const wasOpen = task.status === "OPEN";
+    const previousDeadline = task.deadline;
     const now = new Date().toISOString();
+
     task.status = "CANCELLED";
     task.cancelledAt = now;
     task.updatedAt = now;
 
+    // 1. Persist cancellation FIRST
     await store.tasks.update(task);
     await getActivityService().log(
       "TASK_CANCELLED",
@@ -198,13 +207,42 @@ export class TaskService {
       `Úkol "${task.taskName}" byl zrušen`
     );
 
-    return task;
+    // 2. Dispatch cancellation email if task was OPEN
+    if (wasOpen) {
+      const emailResult = await getEmailService().sendTaskCancelledEmail(task, previousDeadline);
+      if (emailResult.success) {
+        await getActivityService().log(
+          "EMAIL_SENT",
+          task.id,
+          actor,
+          `E-mail o zrušení úkolu odeslán na ${emailResult.deliveredTo}${emailResult.isTestRedirected ? " (test)" : ""}`
+        );
+        return { task, emailResult, emailWarning: null };
+      } else {
+        await getActivityService().log(
+          "EMAIL_FAILED",
+          task.id,
+          actor,
+          `Odeslání e-mailu o zrušení selhalo: ${emailResult.error || "Neznámá chyba"}`
+        );
+        return {
+          task,
+          emailResult,
+          emailWarning: `Úkol byl zrušen, ale e-mail o zrušení se nepodařilo odeslat (${emailResult.error || "chyba spojení"}).`,
+        };
+      }
+    }
+
+    return { task, emailWarning: null };
   }
 
   /**
-   * Edits task. If assignee changes, rotates completion token and sends new email.
+   * Edits an existing task.
+   * If task is OPEN, dispatches an updated notification email with a valid completion link.
+   * If assignee changes, rotates token so the old assignee's link is revoked.
+   * Preserves edits even if email delivery fails.
    */
-  async editTask(input: EditTaskInput, actor: string): Promise<Task> {
+  async editTask(input: EditTaskInput, actor: string): Promise<{ task: Task; emailResult?: SendTaskEmailResult; emailWarning?: string | null }> {
     const store = getDataStore();
     const task = await store.tasks.getById(input.id);
     if (!task) {
@@ -213,7 +251,7 @@ export class TaskService {
 
     const now = new Date().toISOString();
     let assigneeChanged = false;
-    let newRawToken: string | null = null;
+    let oldAssigneeName = task.assigneeName;
 
     if (input.assigneeId && input.assigneeId !== task.assigneeId) {
       const newPerson = await getPeopleService().getById(input.assigneeId);
@@ -225,11 +263,16 @@ export class TaskService {
       task.assigneeId = newPerson.id;
       task.assigneeName = newPerson.name;
       task.assigneeEmail = newPerson.email;
+    }
 
-      // Token rotation: invalidate previous token by issuing a fresh one
-      newRawToken = generateCompletionToken();
-      task.completionTokenHash = hashCompletionToken(newRawToken);
-      task.emailSentAt = null;
+    // When task is OPEN, rotate token to supply a valid completion token in the updated email
+    let rawToken: string | null = null;
+    if (task.status === "OPEN") {
+      rawToken = generateCompletionToken();
+      task.completionTokenHash = hashCompletionToken(rawToken);
+      if (assigneeChanged) {
+        task.emailSentAt = null;
+      }
     }
 
     if (input.taskName !== undefined) task.taskName = input.taskName.trim();
@@ -239,17 +282,28 @@ export class TaskService {
     if (input.deadline !== undefined) task.deadline = input.deadline?.trim() || null;
     task.updatedAt = now;
 
+    // 1. Persist changes FIRST
     await store.tasks.update(task);
+
+    if (assigneeChanged) {
+      await getActivityService().log(
+        "ASSIGNEE_CHANGED",
+        task.id,
+        actor,
+        `Úkol "${task.taskName}" přeřazen: z ${oldAssigneeName} na ${task.assigneeName}`
+      );
+    }
+
     await getActivityService().log(
       "TASK_EDITED",
       task.id,
       actor,
-      `Upraven úkol "${task.taskName}"${assigneeChanged ? ` (předáno: ${task.assigneeName})` : ""}`
+      `Upraven úkol "${task.taskName}"${assigneeChanged ? ` (nový řešitel: ${task.assigneeName})` : ""}`
     );
 
-    // Send email to new assignee if rotated
-    if (assigneeChanged && newRawToken) {
-      const emailResult = await getEmailService().sendTaskEmail(task, newRawToken);
+    // 2. Dispatch updated email if task is OPEN
+    if (task.status === "OPEN" && rawToken) {
+      const emailResult = await getEmailService().sendTaskUpdatedEmail(task, rawToken);
       if (emailResult.success) {
         task.emailSentAt = new Date().toISOString();
         await store.tasks.update(task);
@@ -257,12 +311,25 @@ export class TaskService {
           "EMAIL_SENT",
           task.id,
           actor,
-          `Nový e-mail odeslán na ${emailResult.deliveredTo}`
+          `E-mail o úpravě úkolu odeslán na ${emailResult.deliveredTo}${emailResult.isTestRedirected ? " (test)" : ""}`
         );
+        return { task, emailResult, emailWarning: null };
+      } else {
+        await getActivityService().log(
+          "EMAIL_FAILED",
+          task.id,
+          actor,
+          `Odeslání e-mailu o úpravě selhalo: ${emailResult.error || "Neznámá chyba"}`
+        );
+        return {
+          task,
+          emailResult,
+          emailWarning: `Úkol byl upraven, ale upozornění e-mailem se nepodařilo odeslat (${emailResult.error || "chyba spojení"}).`,
+        };
       }
     }
 
-    return task;
+    return { task, emailWarning: null };
   }
 
   /**

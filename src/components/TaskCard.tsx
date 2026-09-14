@@ -23,8 +23,12 @@ export function TaskCard({ task }: { task: Task }) {
     if (confirm(`Opravdu zrušit úkol "${task.taskName}"?`)) {
       startTransition(async () => {
         try {
-          await cancelTaskAction(task.id);
-          setFeedback("Úkol zrušen.");
+          const res = await cancelTaskAction(task.id);
+          if (res.emailWarning) {
+            setFeedback(`Úkol byl zrušen. Upozornění: ${res.emailWarning}`);
+          } else {
+            setFeedback("Úkol zrušen.");
+          }
         } catch (e: unknown) {
           alert(e instanceof Error ? e.message : "Chyba při rušení úkolu");
         }

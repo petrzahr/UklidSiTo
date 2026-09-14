@@ -28,7 +28,8 @@ export async function updatePersonAction(
   const session = await requireAdminSession();
   const actor = session.email;
 
-  const person = await getPeopleService().update(id, data, actor);
+  const parsed = personSchema.partial().parse(data);
+  const person = await getPeopleService().update(id, parsed, actor);
 
   revalidatePath("/settings");
   revalidatePath("/tasks/new");
@@ -54,7 +55,8 @@ export async function updatePresetAction(
   const session = await requireAdminSession();
   const actor = session.email;
 
-  const preset = await getPresetService().update(id, data, actor);
+  const parsed = presetSchema.partial().parse(data);
+  const preset = await getPresetService().update(id, parsed, actor);
 
   revalidatePath("/settings");
   revalidatePath("/tasks/new");
@@ -80,7 +82,8 @@ export async function updateRoomAction(
   const session = await requireAdminSession();
   const actor = session.email;
 
-  const room = await getRoomService().update(id, data, actor);
+  const parsed = roomSchema.partial().parse(data);
+  const room = await getRoomService().update(id, parsed, actor);
 
   revalidatePath("/settings");
   revalidatePath("/tasks/new");

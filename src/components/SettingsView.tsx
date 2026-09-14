@@ -50,15 +50,35 @@ export function SettingsView({ people, presets, rooms, systemInfo }: Props) {
   const [newPersonEmail, setNewPersonEmail] = useState("");
   const [newPersonEmoji, setNewPersonEmoji] = useState("👤");
 
+  // Editing person state
+  const [editingPersonId, setEditingPersonId] = useState<string | null>(null);
+  const [editPersonName, setEditPersonName] = useState("");
+  const [editPersonEmail, setEditPersonEmail] = useState("");
+  const [editPersonEmoji, setEditPersonEmoji] = useState("");
+
   // New preset form state
   const [showAddPreset, setShowAddPreset] = useState(false);
   const [newPresetName, setNewPresetName] = useState("");
   const [newPresetCat, setNewPresetCat] = useState<TaskPreset["category"]>("General");
   const [newPresetIcon, setNewPresetIcon] = useState("🧹");
 
+  // Editing preset state
+  const [editingPresetId, setEditingPresetId] = useState<string | null>(null);
+  const [editPresetName, setEditPresetName] = useState("");
+  const [editPresetCat, setEditPresetCat] = useState<TaskPreset["category"]>("General");
+  const [editPresetIcon, setEditPresetIcon] = useState("");
+
   // New room form state
   const [showAddRoom, setShowAddRoom] = useState(false);
   const [newRoomName, setNewRoomName] = useState("");
+
+  // Editing room state
+  const [editingRoomId, setEditingRoomId] = useState<string | null>(null);
+  const [editRoomName, setEditRoomName] = useState("");
+
+  // ---------------------------------------------------------------------------
+  // People Handlers
+  // ---------------------------------------------------------------------------
 
   const handleCreatePerson = (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,10 +92,34 @@ export function SettingsView({ people, presets, rooms, systemInfo }: Props) {
         });
         setNewPersonName("");
         setNewPersonEmail("");
+        setNewPersonEmoji("👤");
         setShowAddPerson(false);
         setFeedback("Člen byl úspěšně přidán.");
       } catch (err: unknown) {
-        alert(err instanceof Error ? err.message : "Chyba při vytváření");
+        alert(err instanceof Error ? err.message : "Chyba při vytváření člena.");
+      }
+    });
+  };
+
+  const handleStartEditPerson = (p: Person) => {
+    setEditingPersonId(p.id);
+    setEditPersonName(p.name);
+    setEditPersonEmail(p.email);
+    setEditPersonEmoji(p.emoji || "👤");
+  };
+
+  const handleSaveEditPerson = (personId: string) => {
+    startTransition(async () => {
+      try {
+        await updatePersonAction(personId, {
+          name: editPersonName.trim(),
+          email: editPersonEmail.trim(),
+          emoji: editPersonEmoji.trim() || undefined,
+        });
+        setEditingPersonId(null);
+        setFeedback("Údaje člena byly úspěšně uloženy.");
+      } catch (err: unknown) {
+        alert(err instanceof Error ? err.message : "Chyba při ukládání člena.");
       }
     });
   };
@@ -86,10 +130,14 @@ export function SettingsView({ people, presets, rooms, systemInfo }: Props) {
         await updatePersonAction(person.id, { active: !person.active });
         setFeedback(`Člen ${person.name} byl ${!person.active ? "aktivován" : "deaktivován"}.`);
       } catch (err: unknown) {
-        alert(err instanceof Error ? err.message : "Chyba");
+        alert(err instanceof Error ? err.message : "Chyba při změně stavu člena.");
       }
     });
   };
+
+  // ---------------------------------------------------------------------------
+  // Preset Handlers
+  // ---------------------------------------------------------------------------
 
   const handleCreatePreset = (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,10 +151,34 @@ export function SettingsView({ people, presets, rooms, systemInfo }: Props) {
           sortOrder: presets.length + 1,
         });
         setNewPresetName("");
+        setNewPresetIcon("🧹");
         setShowAddPreset(false);
         setFeedback("Předvolba byla úspěšně vytvořena.");
       } catch (err: unknown) {
-        alert(err instanceof Error ? err.message : "Chyba");
+        alert(err instanceof Error ? err.message : "Chyba při vytváření předvolby.");
+      }
+    });
+  };
+
+  const handleStartEditPreset = (p: TaskPreset) => {
+    setEditingPresetId(p.id);
+    setEditPresetName(p.name);
+    setEditPresetCat(p.category);
+    setEditPresetIcon(p.icon || "✨");
+  };
+
+  const handleSaveEditPreset = (presetId: string) => {
+    startTransition(async () => {
+      try {
+        await updatePresetAction(presetId, {
+          name: editPresetName.trim(),
+          category: editPresetCat,
+          icon: editPresetIcon.trim() || undefined,
+        });
+        setEditingPresetId(null);
+        setFeedback("Předvolba byla úspěšně uložena.");
+      } catch (err: unknown) {
+        alert(err instanceof Error ? err.message : "Chyba při ukládání předvolby.");
       }
     });
   };
@@ -115,12 +187,16 @@ export function SettingsView({ people, presets, rooms, systemInfo }: Props) {
     startTransition(async () => {
       try {
         await updatePresetAction(preset.id, { active: !preset.active });
-        setFeedback(`Předvolba "${preset.name}" byla upravena.`);
+        setFeedback(`Předvolba "${preset.name}" byla ${!preset.active ? "aktivována" : "deaktivována"}.`);
       } catch (err: unknown) {
-        alert(err instanceof Error ? err.message : "Chyba");
+        alert(err instanceof Error ? err.message : "Chyba při změně stavu předvolby.");
       }
     });
   };
+
+  // ---------------------------------------------------------------------------
+  // Room Handlers
+  // ---------------------------------------------------------------------------
 
   const handleCreateRoom = (e: React.FormEvent) => {
     e.preventDefault();
@@ -135,7 +211,26 @@ export function SettingsView({ people, presets, rooms, systemInfo }: Props) {
         setShowAddRoom(false);
         setFeedback("Místnost byla úspěšně přidána.");
       } catch (err: unknown) {
-        alert(err instanceof Error ? err.message : "Chyba");
+        alert(err instanceof Error ? err.message : "Chyba při vytváření místnosti.");
+      }
+    });
+  };
+
+  const handleStartEditRoom = (r: Room) => {
+    setEditingRoomId(r.id);
+    setEditRoomName(r.name);
+  };
+
+  const handleSaveEditRoom = (roomId: string) => {
+    startTransition(async () => {
+      try {
+        await updateRoomAction(roomId, {
+          name: editRoomName.trim(),
+        });
+        setEditingRoomId(null);
+        setFeedback("Místnost byla úspěšně přejmenována.");
+      } catch (err: unknown) {
+        alert(err instanceof Error ? err.message : "Chyba při přejmenování místnosti.");
       }
     });
   };
@@ -144,12 +239,16 @@ export function SettingsView({ people, presets, rooms, systemInfo }: Props) {
     startTransition(async () => {
       try {
         await updateRoomAction(room.id, { active: !room.active });
-        setFeedback(`Místnost "${room.name}" byla upravena.`);
+        setFeedback(`Místnost "${room.name}" byla ${!room.active ? "aktivována" : "deaktivována"}.`);
       } catch (err: unknown) {
-        alert(err instanceof Error ? err.message : "Chyba");
+        alert(err instanceof Error ? err.message : "Chyba při změně stavu místnosti.");
       }
     });
   };
+
+  // ---------------------------------------------------------------------------
+  // Bootstrap Store Handler
+  // ---------------------------------------------------------------------------
 
   const handleBootstrap = () => {
     if (confirm("Chcete inicializovat / ověřit záložky a hlavičky tabulky?")) {
@@ -158,7 +257,7 @@ export function SettingsView({ people, presets, rooms, systemInfo }: Props) {
           const res = await bootstrapStoreAction();
           setFeedback(res.message);
         } catch (err: unknown) {
-          alert(err instanceof Error ? err.message : "Chyba při inicializaci");
+          alert(err instanceof Error ? err.message : "Chyba při inicializaci.");
         }
       });
     }
@@ -244,7 +343,7 @@ export function SettingsView({ people, presets, rooms, systemInfo }: Props) {
             </p>
             <button
               onClick={() => setShowAddPerson(!showAddPerson)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-colors"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Přidat člena</span>
@@ -285,7 +384,7 @@ export function SettingsView({ people, presets, rooms, systemInfo }: Props) {
                   <button
                     type="submit"
                     disabled={isPending}
-                    className="flex-1 bg-emerald-600 text-white font-bold rounded-lg text-xs hover:bg-emerald-700"
+                    className="flex-1 bg-emerald-600 text-white font-bold rounded-lg text-xs hover:bg-emerald-700 transition-colors disabled:opacity-50"
                   >
                     Uložit
                   </button>
@@ -295,45 +394,123 @@ export function SettingsView({ people, presets, rooms, systemInfo }: Props) {
           )}
 
           <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden divide-y divide-slate-100">
-            {people.map((person) => (
-              <div
-                key={person.id}
-                className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">{person.emoji || "👤"}</span>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-slate-900 text-sm">
-                        {person.name}
-                      </span>
-                      {!person.active && (
-                        <span className="text-[10px] font-bold bg-slate-100 text-slate-500 px-2 py-0.5 rounded">
-                          Neaktivní
-                        </span>
-                      )}
-                    </div>
-                    <span className="text-xs text-slate-500">{person.email}</span>
-                  </div>
-                </div>
+            {people.length === 0 ? (
+              <p className="p-6 text-center text-xs text-slate-400">Žádní členové čety. Přidejte prvního člena výše.</p>
+            ) : (
+              people.map((person) => {
+                const isEditing = editingPersonId === person.id;
 
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => handleTogglePerson(person)}
-                    disabled={isPending}
-                    title={person.active ? "Deaktivovat člena" : "Aktivovat člena"}
-                    className={`p-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors ${
-                      person.active
-                        ? "text-slate-500 hover:text-amber-600 hover:bg-amber-50"
-                        : "text-emerald-600 hover:bg-emerald-50"
+                if (isEditing) {
+                  return (
+                    <div key={person.id} className="p-4 bg-emerald-50/40 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-slate-700">Upravit člena čety:</span>
+                        <button
+                          onClick={() => setEditingPersonId(null)}
+                          className="text-slate-400 hover:text-slate-600 text-xs"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <input
+                          type="text"
+                          required
+                          value={editPersonName}
+                          onChange={(e) => setEditPersonName(e.target.value)}
+                          placeholder="Jméno"
+                          className="px-3 py-1.5 border rounded-lg text-xs bg-white focus:ring-2 focus:ring-emerald-500 outline-none"
+                        />
+                        <input
+                          type="email"
+                          required
+                          value={editPersonEmail}
+                          onChange={(e) => setEditPersonEmail(e.target.value)}
+                          placeholder="E-mail"
+                          className="px-3 py-1.5 border rounded-lg text-xs bg-white focus:ring-2 focus:ring-emerald-500 outline-none"
+                        />
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={editPersonEmoji}
+                            onChange={(e) => setEditPersonEmoji(e.target.value)}
+                            placeholder="Emoji"
+                            className="w-16 px-3 py-1.5 border rounded-lg text-xs bg-white text-center outline-none"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleSaveEditPerson(person.id)}
+                            disabled={isPending}
+                            className="flex-1 inline-flex items-center justify-center gap-1 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-bold transition-colors disabled:opacity-50"
+                          >
+                            <Check className="w-3.5 h-3.5" /> Uložit
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEditingPersonId(null)}
+                            className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-xs font-semibold"
+                          >
+                            Zrušit
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div
+                    key={person.id}
+                    className={`p-4 flex items-center justify-between hover:bg-slate-50 transition-colors ${
+                      !person.active ? "opacity-60 bg-slate-50/50" : ""
                     }`}
                   >
-                    <Power className="w-4 h-4" />
-                    <span>{person.active ? "Deaktivovat" : "Aktivovat"}</span>
-                  </button>
-                </div>
-              </div>
-            ))}
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">{person.emoji || "👤"}</span>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-slate-900 text-sm">
+                            {person.name}
+                          </span>
+                          {!person.active && (
+                            <span className="text-[10px] font-bold bg-slate-200 text-slate-600 px-2 py-0.5 rounded">
+                              Neaktivní
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-xs text-slate-500">{person.email}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 sm:gap-2">
+                      <button
+                        onClick={() => handleStartEditPerson(person)}
+                        disabled={isPending}
+                        title="Upravit jméno a e-mail"
+                        className="p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center gap-1 transition-colors"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                        <span className="hidden sm:inline">Upravit</span>
+                      </button>
+
+                      <button
+                        onClick={() => handleTogglePerson(person)}
+                        disabled={isPending}
+                        title={person.active ? "Deaktivovat člena" : "Aktivovat člena"}
+                        className={`p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors ${
+                          person.active
+                            ? "text-slate-500 hover:text-amber-700 hover:bg-amber-50"
+                            : "text-emerald-700 bg-emerald-50 hover:bg-emerald-100"
+                        }`}
+                      >
+                        <Power className="w-3.5 h-3.5" />
+                        <span className="hidden sm:inline">{person.active ? "Deaktivovat" : "Aktivovat"}</span>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })
+            )}
           </div>
         </div>
       )}
@@ -347,7 +524,7 @@ export function SettingsView({ people, presets, rooms, systemInfo }: Props) {
             </p>
             <button
               onClick={() => setShowAddPreset(!showAddPreset)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-colors"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Přidat úkol</span>
@@ -359,7 +536,7 @@ export function SettingsView({ people, presets, rooms, systemInfo }: Props) {
               onSubmit={handleCreatePreset}
               className="bg-white p-4 rounded-xl border border-emerald-300 shadow-sm space-y-3"
             >
-              <h3 className="text-sm font-bold text-slate-800">Nová předvolba</h3>
+              <h3 className="text-sm font-bold text-slate-800">Nová předvolba úkolu</h3>
               <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
                 <input
                   type="text"
@@ -392,7 +569,7 @@ export function SettingsView({ people, presets, rooms, systemInfo }: Props) {
                   <button
                     type="submit"
                     disabled={isPending}
-                    className="flex-1 bg-emerald-600 text-white font-bold rounded-lg text-xs hover:bg-emerald-700"
+                    className="flex-1 bg-emerald-600 text-white font-bold rounded-lg text-xs hover:bg-emerald-700 transition-colors disabled:opacity-50"
                   >
                     Uložit
                   </button>
@@ -402,40 +579,127 @@ export function SettingsView({ people, presets, rooms, systemInfo }: Props) {
           )}
 
           <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden divide-y divide-slate-100">
-            {presets.map((preset) => (
-              <div
-                key={preset.id}
-                className="p-3.5 flex items-center justify-between hover:bg-slate-50 transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-xl">{preset.icon || "✨"}</span>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-slate-900 text-sm">
-                        {preset.name}
-                      </span>
-                      {!preset.active && (
-                        <span className="text-[10px] font-bold bg-slate-100 text-slate-500 px-2 py-0.5 rounded">
-                          Skryto
-                        </span>
-                      )}
-                    </div>
-                    <span className="text-[11px] text-slate-400">{preset.category}</span>
-                  </div>
-                </div>
+            {presets.length === 0 ? (
+              <p className="p-6 text-center text-xs text-slate-400">Žádné předvolby úkolů. Přidejte první výše.</p>
+            ) : (
+              presets.map((preset) => {
+                const isEditing = editingPresetId === preset.id;
 
-                <button
-                  onClick={() => handleTogglePreset(preset)}
-                  disabled={isPending}
-                  className={`p-1.5 rounded-lg text-xs font-semibold ${
-                    preset.active ? "text-slate-400 hover:text-amber-600" : "text-emerald-600"
-                  }`}
-                  title={preset.active ? "Skrýt předvolbu" : "Zobrazit předvolbu"}
-                >
-                  <Power className="w-4 h-4" />
-                </button>
-              </div>
-            ))}
+                if (isEditing) {
+                  return (
+                    <div key={preset.id} className="p-4 bg-emerald-50/40 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-slate-700">Upravit / Přejmenovat úkol:</span>
+                        <button
+                          onClick={() => setEditingPresetId(null)}
+                          className="text-slate-400 hover:text-slate-600 text-xs"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
+                        <input
+                          type="text"
+                          required
+                          value={editPresetName}
+                          onChange={(e) => setEditPresetName(e.target.value)}
+                          placeholder="Název úkolu"
+                          className="px-3 py-1.5 border rounded-lg text-xs bg-white focus:ring-2 focus:ring-emerald-500 outline-none sm:col-span-2"
+                        />
+                        <select
+                          value={editPresetCat}
+                          onChange={(e) => setEditPresetCat(e.target.value as TaskPreset["category"])}
+                          className="px-3 py-1.5 border rounded-lg text-xs bg-white outline-none"
+                        >
+                          <option value="Kitchen">Kitchen</option>
+                          <option value="Cleaning">Cleaning</option>
+                          <option value="Bathroom">Bathroom</option>
+                          <option value="Waste">Waste</option>
+                          <option value="Laundry">Laundry</option>
+                          <option value="General">General</option>
+                        </select>
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={editPresetIcon}
+                            onChange={(e) => setEditPresetIcon(e.target.value)}
+                            placeholder="Ikona"
+                            className="w-16 px-3 py-1.5 border rounded-lg text-xs bg-white text-center outline-none"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleSaveEditPreset(preset.id)}
+                            disabled={isPending}
+                            className="flex-1 inline-flex items-center justify-center gap-1 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-bold transition-colors disabled:opacity-50"
+                          >
+                            <Check className="w-3.5 h-3.5" /> Uložit
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEditingPresetId(null)}
+                            className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-xs font-semibold"
+                          >
+                            Zrušit
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div
+                    key={preset.id}
+                    className={`p-3.5 flex items-center justify-between hover:bg-slate-50 transition-colors ${
+                      !preset.active ? "opacity-60 bg-slate-50/50" : ""
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-xl">{preset.icon || "✨"}</span>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-slate-900 text-sm">
+                            {preset.name}
+                          </span>
+                          {!preset.active && (
+                            <span className="text-[10px] font-bold bg-slate-200 text-slate-600 px-2 py-0.5 rounded">
+                              Neaktivní
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-[11px] text-slate-400">{preset.category}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 sm:gap-2">
+                      <button
+                        onClick={() => handleStartEditPreset(preset)}
+                        disabled={isPending}
+                        title="Upravit název a kategorii"
+                        className="p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center gap-1 transition-colors"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                        <span className="hidden sm:inline">Upravit</span>
+                      </button>
+
+                      <button
+                        onClick={() => handleTogglePreset(preset)}
+                        disabled={isPending}
+                        className={`p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors ${
+                          preset.active
+                            ? "text-slate-500 hover:text-amber-700 hover:bg-amber-50"
+                            : "text-emerald-700 bg-emerald-50 hover:bg-emerald-100"
+                        }`}
+                        title={preset.active ? "Deaktivovat předvolbu" : "Aktivovat předvolbu"}
+                      >
+                        <Power className="w-3.5 h-3.5" />
+                        <span className="hidden sm:inline">{preset.active ? "Deaktivovat" : "Aktivovat"}</span>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })
+            )}
           </div>
         </div>
       )}
@@ -449,7 +713,7 @@ export function SettingsView({ people, presets, rooms, systemInfo }: Props) {
             </p>
             <button
               onClick={() => setShowAddRoom(!showAddRoom)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-colors"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Přidat místnost</span>
@@ -474,7 +738,7 @@ export function SettingsView({ people, presets, rooms, systemInfo }: Props) {
                 <button
                   type="submit"
                   disabled={isPending}
-                  className="px-5 bg-emerald-600 text-white font-bold rounded-lg text-xs hover:bg-emerald-700"
+                  className="px-5 bg-emerald-600 text-white font-bold rounded-lg text-xs hover:bg-emerald-700 transition-colors disabled:opacity-50"
                 >
                   Uložit
                 </button>
@@ -483,35 +747,101 @@ export function SettingsView({ people, presets, rooms, systemInfo }: Props) {
           )}
 
           <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden divide-y divide-slate-100">
-            {rooms.map((room) => (
-              <div
-                key={room.id}
-                className="p-3.5 flex items-center justify-between hover:bg-slate-50 transition-colors"
-              >
-                <div className="flex items-center gap-2.5">
-                  <span className="text-base">🏠</span>
-                  <span className="font-bold text-slate-900 text-sm">
-                    {room.name}
-                  </span>
-                  {!room.active && (
-                    <span className="text-[10px] font-bold bg-slate-100 text-slate-500 px-2 py-0.5 rounded">
-                      Skryto
-                    </span>
-                  )}
-                </div>
+            {rooms.length === 0 ? (
+              <p className="p-6 text-center text-xs text-slate-400">Žádné místnosti. Přidejte první výše.</p>
+            ) : (
+              rooms.map((room) => {
+                const isEditing = editingRoomId === room.id;
 
-                <button
-                  onClick={() => handleToggleRoom(room)}
-                  disabled={isPending}
-                  className={`p-1.5 rounded-lg text-xs font-semibold ${
-                    room.active ? "text-slate-400 hover:text-amber-600" : "text-emerald-600"
-                  }`}
-                  title={room.active ? "Skrýt místnost" : "Zobrazit místnost"}
-                >
-                  <Power className="w-4 h-4" />
-                </button>
-              </div>
-            ))}
+                if (isEditing) {
+                  return (
+                    <div key={room.id} className="p-4 bg-emerald-50/40 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-slate-700">Přejmenovat místnost:</span>
+                        <button
+                          onClick={() => setEditingRoomId(null)}
+                          className="text-slate-400 hover:text-slate-600 text-xs"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          required
+                          value={editRoomName}
+                          onChange={(e) => setEditRoomName(e.target.value)}
+                          placeholder="Název místnosti"
+                          className="flex-1 px-3 py-1.5 border rounded-lg text-xs bg-white focus:ring-2 focus:ring-emerald-500 outline-none"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleSaveEditRoom(room.id)}
+                          disabled={isPending}
+                          className="px-4 py-1.5 inline-flex items-center gap-1 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-bold transition-colors disabled:opacity-50"
+                        >
+                          <Check className="w-3.5 h-3.5" /> Uložit
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setEditingRoomId(null)}
+                          className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-xs font-semibold"
+                        >
+                          Zrušit
+                        </button>
+                      </div>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div
+                    key={room.id}
+                    className={`p-3.5 flex items-center justify-between hover:bg-slate-50 transition-colors ${
+                      !room.active ? "opacity-60 bg-slate-50/50" : ""
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <span className="text-base">🏠</span>
+                      <span className="font-bold text-slate-900 text-sm">
+                        {room.name}
+                      </span>
+                      {!room.active && (
+                        <span className="text-[10px] font-bold bg-slate-200 text-slate-600 px-2 py-0.5 rounded">
+                          Neaktivní
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-1.5 sm:gap-2">
+                      <button
+                        onClick={() => handleStartEditRoom(room)}
+                        disabled={isPending}
+                        title="Přejmenovat místnost"
+                        className="p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center gap-1 transition-colors"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                        <span className="hidden sm:inline">Přejmenovat</span>
+                      </button>
+
+                      <button
+                        onClick={() => handleToggleRoom(room)}
+                        disabled={isPending}
+                        className={`p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors ${
+                          room.active
+                            ? "text-slate-500 hover:text-amber-700 hover:bg-amber-50"
+                            : "text-emerald-700 bg-emerald-50 hover:bg-emerald-100"
+                        }`}
+                        title={room.active ? "Deaktivovat místnost" : "Aktivovat místnost"}
+                      >
+                        <Power className="w-3.5 h-3.5" />
+                        <span className="hidden sm:inline">{room.active ? "Deaktivovat" : "Aktivovat"}</span>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })
+            )}
           </div>
         </div>
       )}
@@ -586,7 +916,7 @@ export function SettingsView({ people, presets, rooms, systemInfo }: Props) {
             <button
               onClick={handleBootstrap}
               disabled={isPending}
-              className="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all shadow"
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all shadow disabled:opacity-50"
             >
               <RefreshCw className="w-3.5 h-3.5" />
               <span>Inicializovat tabulku</span>
