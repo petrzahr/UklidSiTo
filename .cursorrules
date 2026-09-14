@@ -4,5 +4,9 @@
 2. Po úspěšném dokončení každého zadaného úkolu a ověření kódu automaticky:
    - Zkontroluj změněné soubory pomocí `git status`.
    - Zabal změny a vytvoř commit se stručnou, výstižnou zprávou (dodržuj Conventional Commits, např. `feat: ...`, `fix: ...`, `refactor: ...`).
-   - Pushni změny do vzdálené větve `develop` na GitHub (`git push origin develop` nebo pomocí GitHub MCP).
-3. Do větve `main` slučuj kód pouze na můj výslovný příkaz.
+   - Pushni změny do vzdálené větve `develop` na GitHub (`git push origin develop`).
+3. Po otestování a pushnutí do `develop` automaticky nasaď do produkce:
+   - Přepni na `main` (`git checkout main`).
+   - Proveď fast-forward merge větve `develop` (`git merge develop --ff-only`).
+   - Pushni do `origin/main` (`git push origin main`), což spustí produkční nasazení na Vercelu.
+   - Přepni zpět na `develop` (`git checkout develop`).
