@@ -10,10 +10,12 @@ export const dynamic = "force-dynamic";
 export default async function NewTaskPage() {
   await requireAdminSession({ redirectOnUnauth: true });
 
-  const people = await getPeopleService().getActive();
-  const presets = await getPresetService().getActive();
-  const deadlines = await getDeadlineService().getActive();
-  const rooms = await getRoomService().getActive();
+  const [people, presets, deadlines, rooms] = await Promise.all([
+    getPeopleService().getActive(),
+    getPresetService().getActive(),
+    getDeadlineService().getActive(),
+    getRoomService().getActive(),
+  ]);
 
   return <TaskCreationForm people={people} presets={presets} rooms={rooms} deadlines={deadlines} />;
 }

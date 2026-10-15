@@ -9,19 +9,34 @@ export function Header({ isLoggedIn }: { isLoggedIn?: boolean }) {
   const pathname = usePathname();
   const router = useRouter();
   const [loggingOut, setLoggingOut] = useState(false);
+  const [logoutError, setLogoutError] = useState<string | null>(null);
 
   async function handleLogout() {
     setLoggingOut(true);
-    await fetch("/api/auth/logout", { method: "POST" });
-    router.push("/login");
-    router.refresh();
+    setLogoutError(null);
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 15000);
+    try {
+      const response = await fetch("/api/auth/logout", {
+        method: "POST",
+        signal: controller.signal,
+      });
+      if (!response.ok) throw new Error("Logout failed");
+      router.push("/login");
+      router.refresh();
+    } catch {
+      setLogoutError("Odhlášení se nepodařilo. Zkontroluj připojení a zkus to znovu.");
+    } finally {
+      window.clearTimeout(timeout);
+      setLoggingOut(false);
+    }
   }
 
   // On public task completion page, show minimal clean header
   if (pathname.startsWith("/task/")) {
     return (
       <header className="border-b border-slate-200 bg-white/80 backdrop-blur-md sticky top-0 z-30">
-        <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
+        <div className="max-w-3xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <span className="text-2xl">🧹</span>
             <div>
@@ -33,7 +48,7 @@ export function Header({ isLoggedIn }: { isLoggedIn?: boolean }) {
               </span>
             </div>
           </div>
-          <span className="text-xs bg-emerald-50 text-emerald-700 font-medium px-2.5 py-1 rounded-full border border-emerald-200">
+          <span className="text-xs bg-primary-50 text-primary-700 font-medium px-2.5 py-1 rounded-full border border-primary-200">
             Jednorázový odkaz
           </span>
         </div>
@@ -43,7 +58,7 @@ export function Header({ isLoggedIn }: { isLoggedIn?: boolean }) {
 
   return (
     <header className="border-b border-slate-200 bg-white/95 backdrop-blur-md sticky top-0 z-30 shadow-sm">
-      <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div className="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
         <Link href="/" className="flex items-center gap-2.5 group">
           <span className="text-2xl group-hover:rotate-12 transition-transform">🧹</span>
           <div>
@@ -59,9 +74,11 @@ export function Header({ isLoggedIn }: { isLoggedIn?: boolean }) {
           </div>
         </Link>
 
-        <nav className="flex items-center gap-2 sm:gap-3">
+        <nav aria-label="Hlavní navigace" className="flex flex-wrap items-center gap-1 sm:gap-3">
           <Link
             href="/"
+            aria-label="Přehled"
+            aria-current={pathname === "/" ? "page" : undefined}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors ${
               pathname === "/"
                 ? "bg-slate-100 text-slate-900"
@@ -74,7 +91,8 @@ export function Header({ isLoggedIn }: { isLoggedIn?: boolean }) {
 
           <Link
             href="/tasks/new"
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-sm font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition-all active:scale-95"
+            aria-current={pathname === "/tasks/new" ? "page" : undefined}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-sm font-bold bg-primary-700 hover:bg-primary-800 text-white shadow-sm transition-all active:scale-95"
           >
             <PlusCircle className="w-4 h-4" />
             <span>Nahlásit bordel</span>
@@ -82,6 +100,8 @@ export function Header({ isLoggedIn }: { isLoggedIn?: boolean }) {
 
           <Link
             href="/settings"
+            aria-label="Nastavení"
+            aria-current={pathname.startsWith("/settings") ? "page" : undefined}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors ${
               pathname.startsWith("/settings")
                 ? "bg-slate-100 text-slate-900"
@@ -97,12 +117,19 @@ export function Header({ isLoggedIn }: { isLoggedIn?: boolean }) {
               onClick={handleLogout}
               disabled={loggingOut}
               title="Odhlásit se"
-              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors disabled:opacity-50"
+              aria-label="Odhlásit se"
+              aria-describedby={logoutError ? "logout-error" : undefined}
+              className="p-1.5 rounded-lg text-slate-600 hover:text-rose-600 hover:bg-rose-50 transition-colors disabled:opacity-50"
             >
               <LogOut className="w-4 h-4" />
             </button>
           )}
         </nav>
+        {logoutError && (
+          <p id="logout-error" role="alert" className="w-full text-sm text-rose-800">
+            {logoutError}
+          </p>
+        )}
       </div>
     </header>
   );

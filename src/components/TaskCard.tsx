@@ -7,20 +7,25 @@ import {
   Calendar,
   Clock,
   Edit2,
+  Loader2,
   MailCheck,
-  RotateCw,
   Send,
   Trash2,
-  User,
 } from "lucide-react";
 import { cancelTaskAction, resendTaskEmailAction } from "@/app/actions/task-actions";
 
 export function TaskCard({ task }: { task: Task }) {
   const [isPending, startTransition] = useTransition();
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [pendingAction, setPendingAction] = useState<"resend" | "cancel" | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleCancel = () => {
-    if (confirm(`Opravdu zrušit úkol "${task.taskName}"?`)) {
+    if (isPending) return;
+    if (confirm(`Zrušit úkol "${task.taskName}"? Přesune se mezi zrušené úkoly a nepůjde ho potvrdit jako splněný.`)) {
+      setFeedback(null);
+      setErrorMessage(null);
+      setPendingAction("cancel");
       startTransition(async () => {
         try {
           const res = await cancelTaskAction(task.id);
@@ -30,23 +35,31 @@ export function TaskCard({ task }: { task: Task }) {
             setFeedback("Úkol zrušen.");
           }
         } catch (e: unknown) {
-          alert(e instanceof Error ? e.message : "Chyba při rušení úkolu");
+          setErrorMessage(e instanceof Error ? e.message : "Úkol se nepodařilo zrušit. Zkus to znovu.");
+        } finally {
+          setPendingAction(null);
         }
       });
     }
   };
 
   const handleResend = () => {
+    if (isPending) return;
+    setFeedback(null);
+    setErrorMessage(null);
+    setPendingAction("resend");
     startTransition(async () => {
       try {
         const res = await resendTaskEmailAction(task.id);
         if (res.success) {
           setFeedback("E-mail byl znovu odeslán!");
         } else {
-          setFeedback("Odeslání selhalo.");
+          setErrorMessage("E-mail se nepodařilo odeslat. Zkus tlačítko Poslat e-mail znovu ještě jednou.");
         }
       } catch (e: unknown) {
-        alert(e instanceof Error ? e.message : "Chyba při odesílání e-mailu");
+        setErrorMessage(e instanceof Error ? e.message : "E-mail se nepodařilo odeslat. Zkontroluj připojení a zkus to znovu.");
+      } finally {
+        setPendingAction(null);
       }
     });
   };
@@ -69,21 +82,21 @@ export function TaskCard({ task }: { task: Task }) {
 
   return (
     <div
-      className={`bg-white rounded-2xl border p-5 shadow-sm transition-all flex flex-col justify-between ${
+      className={`min-w-0 rounded-2xl border p-5 shadow-sm transition-all flex flex-col justify-between ${
         task.status === "OPEN"
-          ? "border-amber-200/80 hover:border-amber-300"
+          ? "bg-white border-amber-200/80 hover:border-amber-300"
           : task.status === "DONE"
-          ? "border-emerald-200/80 bg-emerald-50/20"
-          : "border-slate-200 opacity-75"
+          ? "border-primary-200/80 bg-primary-50"
+          : "border-slate-200 bg-slate-50"
       }`}
     >
       <div>
         {/* Header line: Task title + room */}
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <h3 className="text-lg font-black text-slate-900 leading-tight">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0 flex-1 basis-40">
+            <h2 className="text-lg font-black text-slate-900 leading-tight">
               {task.taskName}
-            </h3>
+            </h2>
             {task.roomName && (
               <span className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 mt-1">
                 🏠 {task.roomName}
@@ -96,7 +109,7 @@ export function TaskCard({ task }: { task: Task }) {
               task.status === "OPEN"
                 ? "bg-amber-100 text-amber-800"
                 : task.status === "DONE"
-                ? "bg-emerald-100 text-emerald-800"
+                ? "bg-primary-100 text-primary-800"
                 : "bg-slate-100 text-slate-600"
             }`}
           >
@@ -109,9 +122,9 @@ export function TaskCard({ task }: { task: Task }) {
         </div>
 
         {/* Assignee */}
-        <div className="mt-4 flex items-center justify-between text-sm">
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-sm">
           <div className="flex items-center gap-2 text-slate-700 font-medium">
-            <span className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-base">
+            <span className="w-7 h-7 shrink-0 rounded-full bg-slate-100 flex items-center justify-center text-base">
               {task.assigneeName.startsWith("E")
                 ? "👩"
                 : task.assigneeName.startsWith("A")
@@ -121,7 +134,7 @@ export function TaskCard({ task }: { task: Task }) {
             <span>{task.assigneeName}</span>
           </div>
 
-          <div className="text-xs text-slate-400 flex items-center gap-1">
+          <div className="text-xs text-slate-600 flex items-center gap-1 tabular-nums whitespace-nowrap">
             <Clock className="w-3.5 h-3.5" />
             <span>{formattedCreated}</span>
           </div>
@@ -129,7 +142,7 @@ export function TaskCard({ task }: { task: Task }) {
 
         {/* Deadline */}
         {task.deadline && (
-          <div className="mt-2.5 inline-flex items-center gap-1 text-xs font-bold text-rose-600 bg-rose-50 px-2.5 py-1 rounded-md">
+          <div className="mt-2.5 inline-flex items-center gap-1 text-xs font-bold text-rose-700 bg-rose-50 px-2.5 py-1 rounded-md">
             <Calendar className="w-3.5 h-3.5" />
             <span>Termín: {task.deadline}</span>
           </div>
@@ -137,45 +150,49 @@ export function TaskCard({ task }: { task: Task }) {
 
         {/* Note */}
         {task.note && (
-          <div className="mt-3 p-3 bg-slate-50 border-l-2 border-amber-400 rounded-r-lg text-xs text-slate-700">
+          <div className="mt-3 p-3 bg-slate-50 border-l border-amber-400 rounded-r-lg text-xs text-slate-700 whitespace-pre-line">
             {task.note}
           </div>
         )}
 
         {/* Completion Info */}
         {task.status === "DONE" && formattedCompleted && (
-          <div className="mt-3 text-xs text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-lg font-medium flex items-center gap-1.5">
+          <div className="mt-3 text-xs text-primary-700 bg-primary-50 px-3 py-1.5 rounded-lg font-medium flex items-center gap-1.5">
             <MailCheck className="w-3.5 h-3.5" />
             <span>Splněno: {formattedCompleted}</span>
           </div>
         )}
 
-        {feedback && (
-          <div className="mt-2 text-xs font-bold text-emerald-600 animate-pulse">
-            {feedback}
-          </div>
-        )}
+        <div role="status" aria-atomic="true" className="text-xs font-bold text-primary-700">
+          {(pendingAction || feedback) && (
+            <p className="mt-2">
+              {pendingAction === "resend" ? "Odesílám e-mail…" : pendingAction === "cancel" ? "Ruším úkol…" : feedback}
+            </p>
+          )}
+        </div>
+        {errorMessage && <p role="alert" className="mt-2 text-xs font-bold text-rose-800">{errorMessage}</p>}
       </div>
 
       {/* Action Footer for OPEN tasks */}
       {task.status === "OPEN" && (
-        <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+        <div className="mt-5 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-1 text-xs">
             <button
               onClick={handleResend}
               disabled={isPending}
+              aria-busy={pendingAction === "resend"}
               className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium transition-colors"
               title="Poslat e-mail znovu"
             >
-              <Send className="w-3 h-3" />
-              <span>Poslat znovu</span>
+              {pendingAction === "resend" ? <Loader2 aria-hidden="true" className="w-3 h-3 animate-spin" /> : <Send className="w-3 h-3" />}
+              <span>{pendingAction === "resend" ? "Odesílám e-mail…" : "Poslat e-mail znovu"}</span>
             </button>
           </div>
 
           <div className="flex items-center gap-1">
             <Link
               href={`/tasks/${task.id}/edit`}
-              className="p-1.5 rounded-md text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+              className="inline-flex items-center justify-center min-h-11 min-w-11 p-1.5 rounded-md text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
               title="Upravit úkol"
             >
               <Edit2 className="w-3.5 h-3.5" />
@@ -183,10 +200,12 @@ export function TaskCard({ task }: { task: Task }) {
             <button
               onClick={handleCancel}
               disabled={isPending}
-              className="p-1.5 rounded-md text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+              aria-label={pendingAction === "cancel" ? "Ruším úkol…" : "Zrušit úkol"}
+              aria-busy={pendingAction === "cancel"}
+              className="inline-flex items-center justify-center min-h-11 min-w-11 p-1.5 rounded-md text-slate-600 hover:text-rose-600 hover:bg-rose-50 transition-colors"
               title="Zrušit úkol"
             >
-              <Trash2 className="w-3.5 h-3.5" />
+              {pendingAction === "cancel" ? <Loader2 aria-hidden="true" className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
             </button>
           </div>
         </div>

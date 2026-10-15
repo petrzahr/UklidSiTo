@@ -332,9 +332,9 @@ export function SettingsView({ people, presets, rooms, deadlines, systemInfo }: 
       </div>
 
       {feedback && (
-        <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold rounded-xl flex items-center justify-between">
+        <div role="status" className="p-3 bg-primary-50 border border-primary-200 text-primary-800 text-xs font-bold rounded-xl flex items-center justify-between gap-3">
           <span>{feedback}</span>
-          <button onClick={() => setFeedback(null)} className="text-emerald-600 hover:text-emerald-900">
+          <button aria-label="Skrýt zprávu" onClick={() => setFeedback(null)} className="text-primary-700 hover:text-primary-900">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -344,6 +344,7 @@ export function SettingsView({ people, presets, rooms, deadlines, systemInfo }: 
       <div className="flex flex-wrap gap-2 border-b border-slate-200 pb-2">
         <button
           onClick={() => setActiveTab("people")}
+          aria-pressed={activeTab === "people"}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${
             activeTab === "people"
               ? "bg-slate-900 text-white shadow"
@@ -356,6 +357,7 @@ export function SettingsView({ people, presets, rooms, deadlines, systemInfo }: 
 
         <button
           onClick={() => setActiveTab("presets")}
+          aria-pressed={activeTab === "presets"}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${
             activeTab === "presets"
               ? "bg-slate-900 text-white shadow"
@@ -368,6 +370,7 @@ export function SettingsView({ people, presets, rooms, deadlines, systemInfo }: 
 
         <button
           onClick={() => setActiveTab("rooms")}
+          aria-pressed={activeTab === "rooms"}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${
             activeTab === "rooms"
               ? "bg-slate-900 text-white shadow"
@@ -380,6 +383,7 @@ export function SettingsView({ people, presets, rooms, deadlines, systemInfo }: 
 
         <button
           onClick={() => setActiveTab("deadlines")}
+          aria-pressed={activeTab === "deadlines"}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${
             activeTab === "deadlines"
               ? "bg-slate-900 text-white shadow"
@@ -392,6 +396,7 @@ export function SettingsView({ people, presets, rooms, deadlines, systemInfo }: 
 
         <button
           onClick={() => setActiveTab("system")}
+          aria-pressed={activeTab === "system"}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${
             activeTab === "system"
               ? "bg-slate-900 text-white shadow"
@@ -406,13 +411,13 @@ export function SettingsView({ people, presets, rooms, deadlines, systemInfo }: 
       {/* TAB 1: ÚKLIDOVÁ ČETA */}
       {activeTab === "people" && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-xs text-slate-500">
               Úklidová četa se nepřihlašuje. Úkoly potvrzují přes odkaz v e-mailu.
             </p>
             <button
               onClick={() => setShowAddPerson(!showAddPerson)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary-700 hover:bg-primary-800 text-white rounded-lg text-xs font-bold transition-colors"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Přidat člena</span>
@@ -422,7 +427,7 @@ export function SettingsView({ people, presets, rooms, deadlines, systemInfo }: 
           {showAddPerson && (
             <form
               onSubmit={handleCreatePerson}
-              className="bg-white p-4 rounded-xl border border-emerald-300 shadow-sm space-y-3 animate-in fade-in duration-150"
+              className="bg-white p-4 rounded-xl border border-primary-300 shadow-sm space-y-3 animate-in fade-in duration-150"
             >
               <h3 className="text-sm font-bold text-slate-800">Nový člen čety</h3>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -430,22 +435,25 @@ export function SettingsView({ people, presets, rooms, deadlines, systemInfo }: 
                   type="text"
                   required
                   placeholder="Jméno (např. Eva)"
+                  aria-label="Jméno nového člena"
                   value={newPersonName}
                   onChange={(e) => setNewPersonName(e.target.value)}
-                  className="px-3 py-2 border rounded-lg text-xs outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="px-3 py-2 border rounded-lg text-xs outline-none focus:ring-2 focus:ring-primary-500"
                 />
                 <input
                   type="email"
                   required
                   placeholder="E-mail"
+                  aria-label="E-mail nového člena"
                   value={newPersonEmail}
                   onChange={(e) => setNewPersonEmail(e.target.value)}
-                  className="px-3 py-2 border rounded-lg text-xs outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="px-3 py-2 border rounded-lg text-xs outline-none focus:ring-2 focus:ring-primary-500"
                 />
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <input
                     type="text"
                     placeholder="Emoji (👩)"
+                    aria-label="Emoji nového člena"
                     value={newPersonEmoji}
                     onChange={(e) => setNewPersonEmoji(e.target.value)}
                     className="w-16 px-3 py-2 border rounded-lg text-xs outline-none text-center"
@@ -453,7 +461,7 @@ export function SettingsView({ people, presets, rooms, deadlines, systemInfo }: 
                   <button
                     type="submit"
                     disabled={isPending}
-                    className="flex-1 bg-emerald-600 text-white font-bold rounded-lg text-xs hover:bg-emerald-700 transition-colors disabled:opacity-50"
+                    className="flex-1 bg-primary-700 text-white font-bold rounded-lg text-xs hover:bg-primary-800 transition-colors disabled:opacity-50"
                   >
                     Uložit
                   </button>
@@ -464,19 +472,19 @@ export function SettingsView({ people, presets, rooms, deadlines, systemInfo }: 
 
           <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden divide-y divide-slate-100">
             {people.length === 0 ? (
-              <p className="p-6 text-center text-xs text-slate-400">Žádní členové čety. Přidejte prvního člena výše.</p>
+              <p className="p-6 text-center text-xs text-slate-600">Žádní členové čety. Přidej prvního člena výše.</p>
             ) : (
               people.map((person) => {
                 const isEditing = editingPersonId === person.id;
 
                 if (isEditing) {
                   return (
-                    <div key={person.id} className="p-4 bg-emerald-50/40 space-y-3">
-                      <div className="flex items-center justify-between">
+                    <div key={person.id} className="p-4 bg-primary-50/40 space-y-3">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
                         <span className="text-xs font-bold text-slate-700">Upravit člena čety:</span>
-                        <button
+                        <button aria-label="Zrušit úpravy"
                           onClick={() => setEditingPersonId(null)}
-                          className="text-slate-400 hover:text-slate-600 text-xs"
+                          className="text-slate-600 hover:text-slate-600 text-xs"
                         >
                           <X className="w-4 h-4" />
                         </button>
@@ -485,22 +493,25 @@ export function SettingsView({ people, presets, rooms, deadlines, systemInfo }: 
                         <input
                           type="text"
                           required
+                          aria-label="Jméno člena"
                           value={editPersonName}
                           onChange={(e) => setEditPersonName(e.target.value)}
                           placeholder="Jméno"
-                          className="px-3 py-1.5 border rounded-lg text-xs bg-white focus:ring-2 focus:ring-emerald-500 outline-none"
+                          className="px-3 py-1.5 border rounded-lg text-xs bg-white focus:ring-2 focus:ring-primary-500 outline-none"
                         />
                         <input
                           type="email"
                           required
+                          aria-label="E-mail člena"
                           value={editPersonEmail}
                           onChange={(e) => setEditPersonEmail(e.target.value)}
                           placeholder="E-mail"
-                          className="px-3 py-1.5 border rounded-lg text-xs bg-white focus:ring-2 focus:ring-emerald-500 outline-none"
+                          className="px-3 py-1.5 border rounded-lg text-xs bg-white focus:ring-2 focus:ring-primary-500 outline-none"
                         />
-                        <div className="flex gap-2">
+                        <div className="flex flex-wrap gap-2">
                           <input
                             type="text"
+                            aria-label="Emoji člena"
                             value={editPersonEmoji}
                             onChange={(e) => setEditPersonEmoji(e.target.value)}
                             placeholder="Emoji"
@@ -530,14 +541,14 @@ export function SettingsView({ people, presets, rooms, deadlines, systemInfo }: 
                 return (
                   <div
                     key={person.id}
-                    className={`p-4 flex items-center justify-between hover:bg-slate-50 transition-colors ${
-                      !person.active ? "opacity-60 bg-slate-50/50" : ""
+                    className={`p-4 flex flex-col items-start sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50 transition-colors ${
+                      !person.active ? "bg-slate-50/50" : ""
                     }`}
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex min-w-0 w-full sm:w-auto sm:flex-1 items-center gap-3">
                       <span className="text-2xl">{person.emoji || "👤"}</span>
-                      <div>
-                        <div className="flex items-center gap-2">
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
                           <span className="font-bold text-slate-900 text-sm">
                             {person.name}
                           </span>
@@ -551,7 +562,7 @@ export function SettingsView({ people, presets, rooms, deadlines, systemInfo }: 
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1.5 sm:gap-2">
+                    <div className="flex shrink-0 items-center gap-1.5 sm:gap-2 self-end sm:self-auto">
                       <button
                         onClick={() => handleStartEditPerson(person)}
                         disabled={isPending}
@@ -569,7 +580,7 @@ export function SettingsView({ people, presets, rooms, deadlines, systemInfo }: 
                         className={`p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors ${
                           person.active
                             ? "text-slate-500 hover:text-amber-700 hover:bg-amber-50"
-                            : "text-emerald-700 bg-emerald-50 hover:bg-emerald-100"
+                            : "text-primary-700 bg-primary-50 hover:bg-primary-100"
                         }`}
                       >
                         <Power className="w-3.5 h-3.5" />
@@ -587,13 +598,13 @@ export function SettingsView({ people, presets, rooms, deadlines, systemInfo }: 
       {/* TAB 2: ÚKOLY (PRESETS) */}
       {activeTab === "presets" && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-xs text-slate-500">
               Přednastavené úkoly pro rychlý výběr jedním kliknutím.
             </p>
             <button
               onClick={() => setShowAddPreset(!showAddPreset)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary-700 hover:bg-primary-800 text-white rounded-lg text-xs font-bold transition-colors"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Přidat úkol</span>
@@ -603,7 +614,7 @@ export function SettingsView({ people, presets, rooms, deadlines, systemInfo }: 
           {showAddPreset && (
             <form
               onSubmit={handleCreatePreset}
-              className="bg-white p-4 rounded-xl border border-emerald-300 shadow-sm space-y-3"
+              className="bg-white p-4 rounded-xl border border-primary-300 shadow-sm space-y-3"
             >
               <h3 className="text-sm font-bold text-slate-800">Nová předvolba úkolu</h3>
               <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
@@ -611,11 +622,13 @@ export function SettingsView({ people, presets, rooms, deadlines, systemInfo }: 
                   type="text"
                   required
                   placeholder="Název (např. Otřít stůl)"
+                  aria-label="Název nového úkolu"
                   value={newPresetName}
                   onChange={(e) => setNewPresetName(e.target.value)}
-                  className="px-3 py-2 border rounded-lg text-xs outline-none focus:ring-2 focus:ring-emerald-500 sm:col-span-2"
+                  className="px-3 py-2 border rounded-lg text-xs outline-none focus:ring-2 focus:ring-primary-500 sm:col-span-2"
                 />
                 <select
+                  aria-label="Kategorie nového úkolu"
                   value={newPresetCat}
                   onChange={(e) => setNewPresetCat(e.target.value as TaskPreset["category"])}
                   className="px-3 py-2 border rounded-lg text-xs outline-none bg-white"
@@ -627,10 +640,11 @@ export function SettingsView({ people, presets, rooms, deadlines, systemInfo }: 
                   <option value="Laundry">Laundry</option>
                   <option value="General">General</option>
                 </select>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <input
                     type="text"
                     placeholder="Ikona"
+                    aria-label="Ikona nového úkolu"
                     value={newPresetIcon}
                     onChange={(e) => setNewPresetIcon(e.target.value)}
                     className="w-16 px-3 py-2 border rounded-lg text-xs outline-none text-center"
@@ -638,7 +652,7 @@ export function SettingsView({ people, presets, rooms, deadlines, systemInfo }: 
                   <button
                     type="submit"
                     disabled={isPending}
-                    className="flex-1 bg-emerald-600 text-white font-bold rounded-lg text-xs hover:bg-emerald-700 transition-colors disabled:opacity-50"
+                    className="flex-1 bg-primary-700 text-white font-bold rounded-lg text-xs hover:bg-primary-800 transition-colors disabled:opacity-50"
                   >
                     Uložit
                   </button>
@@ -649,19 +663,19 @@ export function SettingsView({ people, presets, rooms, deadlines, systemInfo }: 
 
           <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden divide-y divide-slate-100">
             {presets.length === 0 ? (
-              <p className="p-6 text-center text-xs text-slate-400">Žádné předvolby úkolů. Přidejte první výše.</p>
+              <p className="p-6 text-center text-xs text-slate-600">Žádné předvolby úkolů. Přidej první výše.</p>
             ) : (
               presets.map((preset) => {
                 const isEditing = editingPresetId === preset.id;
 
                 if (isEditing) {
                   return (
-                    <div key={preset.id} className="p-4 bg-emerald-50/40 space-y-3">
-                      <div className="flex items-center justify-between">
+                    <div key={preset.id} className="p-4 bg-primary-50/40 space-y-3">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
                         <span className="text-xs font-bold text-slate-700">Upravit / Přejmenovat úkol:</span>
-                        <button
+                        <button aria-label="Zrušit úpravy"
                           onClick={() => setEditingPresetId(null)}
-                          className="text-slate-400 hover:text-slate-600 text-xs"
+                          className="text-slate-600 hover:text-slate-600 text-xs"
                         >
                           <X className="w-4 h-4" />
                         </button>
@@ -670,12 +684,14 @@ export function SettingsView({ people, presets, rooms, deadlines, systemInfo }: 
                         <input
                           type="text"
                           required
+                          aria-label="Název úkolu"
                           value={editPresetName}
                           onChange={(e) => setEditPresetName(e.target.value)}
                           placeholder="Název úkolu"
-                          className="px-3 py-1.5 border rounded-lg text-xs bg-white focus:ring-2 focus:ring-emerald-500 outline-none sm:col-span-2"
+                          className="px-3 py-1.5 border rounded-lg text-xs bg-white focus:ring-2 focus:ring-primary-500 outline-none sm:col-span-2"
                         />
                         <select
+                          aria-label="Kategorie úkolu"
                           value={editPresetCat}
                           onChange={(e) => setEditPresetCat(e.target.value as TaskPreset["category"])}
                           className="px-3 py-1.5 border rounded-lg text-xs bg-white outline-none"
@@ -687,9 +703,10 @@ export function SettingsView({ people, presets, rooms, deadlines, systemInfo }: 
                           <option value="Laundry">Laundry</option>
                           <option value="General">General</option>
                         </select>
-                        <div className="flex gap-2">
+                        <div className="flex flex-wrap gap-2">
                           <input
                             type="text"
+                            aria-label="Ikona úkolu"
                             value={editPresetIcon}
                             onChange={(e) => setEditPresetIcon(e.target.value)}
                             placeholder="Ikona"
@@ -719,14 +736,14 @@ export function SettingsView({ people, presets, rooms, deadlines, systemInfo }: 
                 return (
                   <div
                     key={preset.id}
-                    className={`p-3.5 flex items-center justify-between hover:bg-slate-50 transition-colors ${
-                      !preset.active ? "opacity-60 bg-slate-50/50" : ""
+                    className={`p-3.5 flex flex-col items-start sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50 transition-colors ${
+                      !preset.active ? "bg-slate-50/50" : ""
                     }`}
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex min-w-0 w-full sm:w-auto sm:flex-1 items-center gap-3">
                       <span className="text-xl">{preset.icon || "✨"}</span>
-                      <div>
-                        <div className="flex items-center gap-2">
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
                           <span className="font-bold text-slate-900 text-sm">
                             {preset.name}
                           </span>
@@ -736,11 +753,11 @@ export function SettingsView({ people, presets, rooms, deadlines, systemInfo }: 
                             </span>
                           )}
                         </div>
-                        <span className="text-[11px] text-slate-400">{preset.category}</span>
+                        <span className="text-[11px] text-slate-600">{preset.category}</span>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1.5 sm:gap-2">
+                    <div className="flex shrink-0 items-center gap-1.5 sm:gap-2 self-end sm:self-auto">
                       <button
                         onClick={() => handleStartEditPreset(preset)}
                         disabled={isPending}
@@ -757,7 +774,7 @@ export function SettingsView({ people, presets, rooms, deadlines, systemInfo }: 
                         className={`p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors ${
                           preset.active
                             ? "text-slate-500 hover:text-amber-700 hover:bg-amber-50"
-                            : "text-emerald-700 bg-emerald-50 hover:bg-emerald-100"
+                            : "text-primary-700 bg-primary-50 hover:bg-primary-100"
                         }`}
                         title={preset.active ? "Deaktivovat předvolbu" : "Aktivovat předvolbu"}
                       >
@@ -776,13 +793,13 @@ export function SettingsView({ people, presets, rooms, deadlines, systemInfo }: 
       {/* TAB 3: MÍSTNOSTI */}
       {activeTab === "rooms" && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-xs text-slate-500">
               Místnosti jsou při zadávání úkolu vždy volitelné.
             </p>
             <button
               onClick={() => setShowAddRoom(!showAddRoom)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary-700 hover:bg-primary-800 text-white rounded-lg text-xs font-bold transition-colors"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Přidat místnost</span>
@@ -792,22 +809,23 @@ export function SettingsView({ people, presets, rooms, deadlines, systemInfo }: 
           {showAddRoom && (
             <form
               onSubmit={handleCreateRoom}
-              className="bg-white p-4 rounded-xl border border-emerald-300 shadow-sm space-y-3"
+              className="bg-white p-4 rounded-xl border border-primary-300 shadow-sm space-y-3"
             >
               <h3 className="text-sm font-bold text-slate-800">Nová místnost</h3>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <input
                   type="text"
                   required
                   placeholder="Název (např. Dětský pokoj)"
+                  aria-label="Název nové místnosti"
                   value={newRoomName}
                   onChange={(e) => setNewRoomName(e.target.value)}
-                  className="flex-1 px-3 py-2 border rounded-lg text-xs outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="min-w-0 flex-1 basis-full sm:basis-0 px-3 py-2 border rounded-lg text-xs outline-none focus:ring-2 focus:ring-primary-500"
                 />
                 <button
                   type="submit"
                   disabled={isPending}
-                  className="px-5 bg-emerald-600 text-white font-bold rounded-lg text-xs hover:bg-emerald-700 transition-colors disabled:opacity-50"
+                  className="px-5 bg-primary-700 text-white font-bold rounded-lg text-xs hover:bg-primary-800 transition-colors disabled:opacity-50"
                 >
                   Uložit
                 </button>
@@ -817,31 +835,32 @@ export function SettingsView({ people, presets, rooms, deadlines, systemInfo }: 
 
           <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden divide-y divide-slate-100">
             {rooms.length === 0 ? (
-              <p className="p-6 text-center text-xs text-slate-400">Žádné místnosti. Přidejte první výše.</p>
+              <p className="p-6 text-center text-xs text-slate-600">Žádné místnosti. Přidej první výše.</p>
             ) : (
               rooms.map((room) => {
                 const isEditing = editingRoomId === room.id;
 
                 if (isEditing) {
                   return (
-                    <div key={room.id} className="p-4 bg-emerald-50/40 space-y-3">
-                      <div className="flex items-center justify-between">
+                    <div key={room.id} className="p-4 bg-primary-50/40 space-y-3">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
                         <span className="text-xs font-bold text-slate-700">Přejmenovat místnost:</span>
-                        <button
+                        <button aria-label="Zrušit úpravy"
                           onClick={() => setEditingRoomId(null)}
-                          className="text-slate-400 hover:text-slate-600 text-xs"
+                          className="text-slate-600 hover:text-slate-600 text-xs"
                         >
                           <X className="w-4 h-4" />
                         </button>
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex flex-wrap gap-2">
                         <input
                           type="text"
                           required
+                          aria-label="Název místnosti"
                           value={editRoomName}
                           onChange={(e) => setEditRoomName(e.target.value)}
                           placeholder="Název místnosti"
-                          className="flex-1 px-3 py-1.5 border rounded-lg text-xs bg-white focus:ring-2 focus:ring-emerald-500 outline-none"
+                          className="min-w-0 flex-1 basis-full sm:basis-0 px-3 py-1.5 border rounded-lg text-xs bg-white focus:ring-2 focus:ring-primary-500 outline-none"
                         />
                         <button
                           type="button"
@@ -866,11 +885,11 @@ export function SettingsView({ people, presets, rooms, deadlines, systemInfo }: 
                 return (
                   <div
                     key={room.id}
-                    className={`p-3.5 flex items-center justify-between hover:bg-slate-50 transition-colors ${
-                      !room.active ? "opacity-60 bg-slate-50/50" : ""
+                    className={`p-3.5 flex flex-col items-start sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50 transition-colors ${
+                      !room.active ? "bg-slate-50/50" : ""
                     }`}
                   >
-                    <div className="flex items-center gap-2.5">
+                    <div className="flex min-w-0 flex-wrap items-center gap-2.5">
                       <span className="text-base">🏠</span>
                       <span className="font-bold text-slate-900 text-sm">
                         {room.name}
@@ -882,7 +901,7 @@ export function SettingsView({ people, presets, rooms, deadlines, systemInfo }: 
                       )}
                     </div>
 
-                    <div className="flex items-center gap-1.5 sm:gap-2">
+                    <div className="flex shrink-0 items-center gap-1.5 sm:gap-2 self-end sm:self-auto">
                       <button
                         onClick={() => handleStartEditRoom(room)}
                         disabled={isPending}
@@ -899,7 +918,7 @@ export function SettingsView({ people, presets, rooms, deadlines, systemInfo }: 
                         className={`p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors ${
                           room.active
                             ? "text-slate-500 hover:text-amber-700 hover:bg-amber-50"
-                            : "text-emerald-700 bg-emerald-50 hover:bg-emerald-100"
+                            : "text-primary-700 bg-primary-50 hover:bg-primary-100"
                         }`}
                         title={room.active ? "Deaktivovat místnost" : "Aktivovat místnost"}
                       >
@@ -918,13 +937,13 @@ export function SettingsView({ people, presets, rooms, deadlines, systemInfo }: 
       {/* TAB 4: TERMÍNY */}
       {activeTab === "deadlines" && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-xs text-slate-500">
               Termíny jsou při zadávání úkolu vždy volitelné.
             </p>
             <button
               onClick={() => setShowAddDeadline(!showAddDeadline)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary-700 hover:bg-primary-800 text-white rounded-lg text-xs font-bold transition-colors"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Přidat termín</span>
@@ -934,22 +953,23 @@ export function SettingsView({ people, presets, rooms, deadlines, systemInfo }: 
           {showAddDeadline && (
             <form
               onSubmit={handleCreateDeadline}
-              className="bg-white p-4 rounded-xl border border-emerald-300 shadow-sm space-y-3"
+              className="bg-white p-4 rounded-xl border border-primary-300 shadow-sm space-y-3"
             >
               <h3 className="text-sm font-bold text-slate-800">Nový termín</h3>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <input
                   type="text"
                   required
                   placeholder="Název (např. Do večera)"
+                  aria-label="Název nového termínu"
                   value={newDeadlineName}
                   onChange={(e) => setNewDeadlineName(e.target.value)}
-                  className="flex-1 px-3 py-2 border rounded-lg text-xs outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="min-w-0 flex-1 basis-full sm:basis-0 px-3 py-2 border rounded-lg text-xs outline-none focus:ring-2 focus:ring-primary-500"
                 />
                 <button
                   type="submit"
                   disabled={isPending}
-                  className="px-5 bg-emerald-600 text-white font-bold rounded-lg text-xs hover:bg-emerald-700 transition-colors disabled:opacity-50"
+                  className="px-5 bg-primary-700 text-white font-bold rounded-lg text-xs hover:bg-primary-800 transition-colors disabled:opacity-50"
                 >
                   Uložit
                 </button>
@@ -959,31 +979,32 @@ export function SettingsView({ people, presets, rooms, deadlines, systemInfo }: 
 
           <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden divide-y divide-slate-100">
             {deadlines.length === 0 ? (
-              <p className="p-6 text-center text-xs text-slate-400">Žádné termíny. Přidejte první výše.</p>
+              <p className="p-6 text-center text-xs text-slate-600">Žádné termíny. Přidej první výše.</p>
             ) : (
               deadlines.map((deadline) => {
                 const isEditing = editingDeadlineId === deadline.id;
 
                 if (isEditing) {
                   return (
-                    <div key={deadline.id} className="p-4 bg-emerald-50/40 space-y-3">
-                      <div className="flex items-center justify-between">
+                    <div key={deadline.id} className="p-4 bg-primary-50/40 space-y-3">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
                         <span className="text-xs font-bold text-slate-700">Přejmenovat termín:</span>
-                        <button
+                        <button aria-label="Zrušit úpravy"
                           onClick={() => setEditingDeadlineId(null)}
-                          className="text-slate-400 hover:text-slate-600 text-xs"
+                          className="text-slate-600 hover:text-slate-600 text-xs"
                         >
                           <X className="w-4 h-4" />
                         </button>
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex flex-wrap gap-2">
                         <input
                           type="text"
                           required
+                          aria-label="Název termínu"
                           value={editDeadlineName}
                           onChange={(e) => setEditDeadlineName(e.target.value)}
                           placeholder="Název termínu"
-                          className="flex-1 px-3 py-1.5 border rounded-lg text-xs bg-white focus:ring-2 focus:ring-emerald-500 outline-none"
+                          className="min-w-0 flex-1 basis-full sm:basis-0 px-3 py-1.5 border rounded-lg text-xs bg-white focus:ring-2 focus:ring-primary-500 outline-none"
                         />
                         <button
                           type="button"
@@ -1008,11 +1029,11 @@ export function SettingsView({ people, presets, rooms, deadlines, systemInfo }: 
                 return (
                   <div
                     key={deadline.id}
-                    className={`p-3.5 flex items-center justify-between hover:bg-slate-50 transition-colors ${
-                      !deadline.active ? "opacity-60 bg-slate-50/50" : ""
+                    className={`p-3.5 flex flex-col items-start sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50 transition-colors ${
+                      !deadline.active ? "bg-slate-50/50" : ""
                     }`}
                   >
-                    <div className="flex items-center gap-2.5">
+                    <div className="flex min-w-0 flex-wrap items-center gap-2.5">
                       <span className="text-base">⏰</span>
                       <span className="font-bold text-slate-900 text-sm">
                         {deadline.name}
@@ -1024,7 +1045,7 @@ export function SettingsView({ people, presets, rooms, deadlines, systemInfo }: 
                       )}
                     </div>
 
-                    <div className="flex items-center gap-1.5 sm:gap-2">
+                    <div className="flex shrink-0 items-center gap-1.5 sm:gap-2 self-end sm:self-auto">
                       <button
                         onClick={() => handleStartEditDeadline(deadline)}
                         disabled={isPending}
@@ -1041,7 +1062,7 @@ export function SettingsView({ people, presets, rooms, deadlines, systemInfo }: 
                         className={`p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors ${
                           deadline.active
                             ? "text-slate-500 hover:text-amber-700 hover:bg-amber-50"
-                            : "text-emerald-700 bg-emerald-50 hover:bg-emerald-100"
+                            : "text-primary-700 bg-primary-50 hover:bg-primary-100"
                         }`}
                         title={deadline.active ? "Deaktivovat termín" : "Aktivovat termín"}
                       >
@@ -1062,7 +1083,7 @@ export function SettingsView({ people, presets, rooms, deadlines, systemInfo }: 
         <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-6 shadow-sm">
           <div>
             <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-              <ShieldCheck className="w-5 h-5 text-emerald-600" />
+              <ShieldCheck className="w-5 h-5 text-primary-700" />
               <span>Izolace prostředí a úložiště</span>
             </h3>
             <p className="text-xs text-slate-500 mt-1">
@@ -1072,7 +1093,7 @@ export function SettingsView({ people, presets, rooms, deadlines, systemInfo }: 
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
             <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
-              <span className="text-slate-400 font-medium block mb-1">
+              <span className="text-slate-600 font-medium block mb-1">
                 Konfigurace
               </span>
               <span className="font-mono font-bold text-sm text-slate-900 uppercase">
@@ -1084,7 +1105,7 @@ export function SettingsView({ people, presets, rooms, deadlines, systemInfo }: 
             </div>
 
             <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
-              <span className="text-slate-400 font-medium block mb-1">
+              <span className="text-slate-600 font-medium block mb-1">
                 Typ datového úložiště
               </span>
               <span className="font-mono font-bold text-sm text-slate-900">
@@ -1096,7 +1117,7 @@ export function SettingsView({ people, presets, rooms, deadlines, systemInfo }: 
             </div>
 
             <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
-              <span className="text-slate-400 font-medium block mb-1">
+              <span className="text-slate-600 font-medium block mb-1">
                 Správce (ADMIN_EMAIL)
               </span>
               <span className="font-mono font-bold text-sm text-slate-900">
@@ -1105,12 +1126,12 @@ export function SettingsView({ people, presets, rooms, deadlines, systemInfo }: 
             </div>
           </div>
 
-          <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
+          <div className="pt-4 border-t border-slate-100 flex flex-col items-start sm:flex-row sm:items-center justify-between gap-4">
             <div className="text-xs text-slate-500">
               <strong className="block text-slate-700 font-semibold mb-0.5">
-                Inicializace tabulky (Idempotentní)
+                Příprava tabulky pro úkoly
               </strong>
-              Vytvoří chybějící záložky a hlavičky sloupců v Google tabulce.
+              Doplní chybějící záložky a názvy sloupců. Stávající data zůstanou zachovaná. Akci můžeš bezpečně zopakovat.
             </div>
 
             <button
@@ -1119,7 +1140,7 @@ export function SettingsView({ people, presets, rooms, deadlines, systemInfo }: 
               className="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all shadow disabled:opacity-50"
             >
               <RefreshCw className="w-3.5 h-3.5" />
-              <span>Inicializovat tabulku</span>
+              <span>Připravit tabulku</span>
             </button>
           </div>
         </div>

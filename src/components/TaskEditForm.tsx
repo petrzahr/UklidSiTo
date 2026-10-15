@@ -4,7 +4,7 @@ import { DeadlinePreset, Person, Room, Task } from "@/types";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { editTaskAction, cancelTaskAction } from "@/app/actions/task-actions";
-import { ArrowLeft, Clock, Save, Trash2, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Loader2, Save, Trash2, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 
 interface Props {
@@ -72,7 +72,7 @@ export function TaskEditForm({ task, people, rooms, deadlines }: Props) {
   };
 
   const handleCancel = () => {
-    if (confirm("Opravdu zrušit tento úkol?")) {
+    if (confirm("Zrušit tento úkol? Přesune se mezi zrušené úkoly a nepůjde ho potvrdit jako splněný.")) {
       setErrorMessage(null);
       setWarningMessage(null);
       startTransition(async () => {
@@ -95,7 +95,7 @@ export function TaskEditForm({ task, people, rooms, deadlines }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 max-w-xl mx-auto pb-12">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <Link
           href="/"
           className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900"
@@ -106,7 +106,7 @@ export function TaskEditForm({ task, people, rooms, deadlines }: Props) {
           type="button"
           onClick={handleCancel}
           disabled={isPending}
-          className="inline-flex items-center gap-1.5 text-xs font-bold text-rose-600 hover:text-rose-700 bg-rose-50 px-3 py-1.5 rounded-lg"
+          className="inline-flex items-center gap-1.5 text-xs font-bold text-rose-700 hover:text-rose-800 bg-rose-50 px-3 py-1.5 rounded-lg"
         >
           <Trash2 className="w-3.5 h-3.5" />
           Zrušit úkol
@@ -120,13 +120,13 @@ export function TaskEditForm({ task, people, rooms, deadlines }: Props) {
       </div>
 
       {errorMessage && (
-        <div className="p-4 bg-rose-50 border border-rose-200 text-rose-800 text-sm font-semibold rounded-xl">
+        <div role="alert" className="p-4 bg-rose-50 border border-rose-200 text-rose-800 text-sm font-semibold rounded-xl">
           {errorMessage}
         </div>
       )}
 
       {warningMessage && (
-        <div className="p-4 bg-amber-50 border border-amber-300 rounded-xl text-amber-900 text-xs">
+        <div role="alert" className="p-4 bg-amber-50 border border-amber-300 rounded-xl text-amber-900 text-xs">
           <div className="flex items-center gap-2 font-bold mb-1">
             <AlertTriangle className="w-4 h-4 text-amber-600" />
             <span>Změny byly uloženy s upozorněním:</span>
@@ -149,34 +149,36 @@ export function TaskEditForm({ task, people, rooms, deadlines }: Props) {
         <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 flex items-start gap-2.5">
           <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
           <div>
-            <strong className="block font-bold">Bezpečnostní rotace odkazu</strong>
-            Při změně řešitele bude vygenerován nový bezpečnostní odkaz a odeslán e-mail novému příjemci. Původní odkaz v e-mailu bude okamžitě zneplatněn.
+            <strong className="block font-bold">Původní odkaz přestane platit</strong>
+            Po uložení změny řešitele přestane původní odkaz fungovat. Novému řešiteli se odešle e-mail s novým odkazem pro potvrzení splnění.
           </div>
         </div>
       )}
 
       <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-4 shadow-sm">
         <div>
-          <label className="block text-xs font-bold text-slate-700 mb-1">
+          <label htmlFor="edit-task-name" className="block text-xs font-bold text-slate-700 mb-1">
             Název úkolu
           </label>
           <input
             type="text"
             required
+            id="edit-task-name"
             value={taskName}
             onChange={(e) => setTaskName(e.target.value)}
-            className="w-full px-3 py-2 border rounded-xl text-sm font-medium focus:ring-2 focus:ring-emerald-500 outline-none"
+            className="w-full px-3 py-2 border rounded-xl text-sm font-medium focus:ring-2 focus:ring-primary-500 outline-none"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-slate-700 mb-1">
+          <label htmlFor="edit-assignee" className="block text-xs font-bold text-slate-700 mb-1">
             Kdo to schytá (řešitel)
           </label>
           <select
+            id="edit-assignee"
             value={assigneeId}
             onChange={(e) => setAssigneeId(e.target.value)}
-            className="w-full px-3 py-2 border rounded-xl text-sm font-medium focus:ring-2 focus:ring-emerald-500 outline-none bg-white"
+            className="w-full px-3 py-2 border rounded-xl text-sm font-medium focus:ring-2 focus:ring-primary-500 outline-none bg-white"
           >
             {people.map((p) => (
               <option key={p.id} value={p.id}>
@@ -187,13 +189,14 @@ export function TaskEditForm({ task, people, rooms, deadlines }: Props) {
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-slate-700 mb-1">
+          <label htmlFor="edit-room" className="block text-xs font-bold text-slate-700 mb-1">
             Místnost
           </label>
           <select
+            id="edit-room"
             value={roomId}
             onChange={(e) => handleRoomChange(e.target.value)}
-            className="w-full px-3 py-2 border rounded-xl text-sm font-medium focus:ring-2 focus:ring-emerald-500 outline-none bg-white"
+            className="w-full px-3 py-2 border rounded-xl text-sm font-medium focus:ring-2 focus:ring-primary-500 outline-none bg-white"
           >
             <option value="">-- Bez místnosti --</option>
             {rooms.map((r) => (
@@ -205,7 +208,7 @@ export function TaskEditForm({ task, people, rooms, deadlines }: Props) {
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-slate-700 mb-1">
+          <label htmlFor="edit-deadline" className="block text-xs font-bold text-slate-700 mb-1">
             Termín
           </label>
           <div className="flex flex-wrap gap-1.5 mb-2">
@@ -213,6 +216,7 @@ export function TaskEditForm({ task, people, rooms, deadlines }: Props) {
               <button
                 type="button"
                 key={qd.id}
+                aria-pressed={deadline === qd.name}
                 onClick={() => setDeadline(qd.name)}
                 className={`px-2.5 py-1 rounded-md text-xs font-medium border ${
                   deadline === qd.name
@@ -226,22 +230,24 @@ export function TaskEditForm({ task, people, rooms, deadlines }: Props) {
           </div>
           <input
             type="text"
+            id="edit-deadline"
             value={deadline}
             onChange={(e) => setDeadline(e.target.value)}
-            className="w-full px-3 py-2 border rounded-xl text-sm font-medium focus:ring-2 focus:ring-emerald-500 outline-none"
+            className="w-full px-3 py-2 border rounded-xl text-sm font-medium focus:ring-2 focus:ring-primary-500 outline-none"
             placeholder="např. dnes do 18:00"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-slate-700 mb-1">
+          <label htmlFor="edit-note" className="block text-xs font-bold text-slate-700 mb-1">
             Poznámka
           </label>
           <textarea
             rows={3}
+            id="edit-note"
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            className="w-full px-3 py-2 border rounded-xl text-sm font-medium focus:ring-2 focus:ring-emerald-500 outline-none resize-none"
+            className="w-full px-3 py-2 border rounded-xl text-sm font-medium focus:ring-2 focus:ring-primary-500 outline-none resize-none"
           />
         </div>
       </div>
@@ -250,14 +256,14 @@ export function TaskEditForm({ task, people, rooms, deadlines }: Props) {
         <button
           type="submit"
           disabled={isPending}
-          className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow transition-all flex items-center justify-center gap-2"
+          className="flex-1 py-3 bg-primary-700 hover:bg-primary-800 text-white font-bold rounded-xl shadow transition-all flex items-center justify-center gap-2"
         >
           {isPending ? (
-            <Clock className="w-4 h-4 animate-spin" />
+            <Loader2 aria-hidden="true" className="w-4 h-4 animate-spin" />
           ) : (
             <Save className="w-4 h-4" />
           )}
-          <span>Uložit změny</span>
+          <span>{isPending ? "Ukládám změny..." : "Uložit změny"}</span>
         </button>
       </div>
     </form>

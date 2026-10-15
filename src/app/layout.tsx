@@ -15,8 +15,6 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
 };
 
 export default async function RootLayout({
@@ -30,11 +28,12 @@ export default async function RootLayout({
   return (
     <html lang="cs">
       <body className="antialiased min-h-screen flex flex-col bg-slate-50 text-slate-900">
+        <a href="#main-content" className="skip-link">Přejít na obsah</a>
         <Header isLoggedIn={isLoggedIn} />
-        <main className="flex-1 w-full max-w-5xl mx-auto px-4 py-6">
+        <main id="main-content" className="flex-1 min-w-0 w-full max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
           {children}
         </main>
-        <footer className="border-t border-slate-200 py-6 text-center text-xs text-slate-400">
+        <footer className="border-t border-slate-200 py-6 text-center text-xs text-slate-600">
           <p>🧹 <strong>UklidSiTo</strong> • Domácnost se sama neuklidí.</p>
         </footer>
       </body>

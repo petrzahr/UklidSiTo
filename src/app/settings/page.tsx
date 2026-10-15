@@ -11,10 +11,12 @@ export const dynamic = "force-dynamic";
 export default async function SettingsPage() {
   await requireAdminSession({ redirectOnUnauth: true });
 
-  const people = await getPeopleService().getAll();
-  const presets = await getPresetService().getAll();
-  const deadlines = await getDeadlineService().getAll();
-  const rooms = await getRoomService().getAll();
+  const [people, presets, deadlines, rooms] = await Promise.all([
+    getPeopleService().getAll(),
+    getPresetService().getAll(),
+    getDeadlineService().getAll(),
+    getRoomService().getAll(),
+  ]);
   const config = getConfig();
 
   const maskedSheetId = config.sheetId

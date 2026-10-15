@@ -5,6 +5,8 @@
 :root {
   --background: #f8fafc;
   --foreground: #0f172a;
+  --focus: #047857;
+  --selection: #d1fae5;
 }
 
 body {
@@ -20,4 +22,90 @@ body {
 /* Smooth mobile touch highlighting */
 button, a {
   -webkit-tap-highlight-color: transparent;
+}
+
+@layer base {
+  button, a {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
+
+  input:not([type="checkbox"]), select, textarea {
+    min-width: 0;
+    max-width: 100%;
+    min-height: 44px;
+  }
+
+  input::placeholder, textarea::placeholder {
+    color: #64748b;
+    opacity: 1;
+  }
+
+  input, textarea {
+    caret-color: var(--focus);
+  }
+
+  ::selection {
+    color: var(--foreground);
+    background: var(--selection);
+  }
+
+  main {
+    overflow-wrap: anywhere;
+  }
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+
+.skip-link {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  z-index: 100;
+  padding: 12px;
+  background: white;
+  color: var(--foreground);
+  transform: translateY(-200%);
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+.celebrate {
+  animation: celebrate 500ms ease-out 1;
+}
+
+@keyframes celebrate {
+  50% { transform: translateY(-8px); }
+}
+
+@media (max-width: 639px) {
+  input:not([type="checkbox"]), select, textarea {
+    font-size: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .celebrate, .animate-spin, .animate-pulse, .animate-in {
+    animation: none;
+  }
+
+  button, a:not(.skip-link), a span {
+    transition: none !important;
+    transform: none !important;
+  }
 }

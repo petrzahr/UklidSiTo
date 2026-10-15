@@ -54,4 +54,21 @@ describe("Deadline UI and Czech copy", () => {
     }
     expect(login).toContain("Úklidová četa se nepřihlašuje. Úkoly potvrzují přes odkaz v e-mailu.");
   });
+
+  it("requires an explicit recipient even when a crew member is available", () => {
+    const html = renderToStaticMarkup(<TaskCreationForm people={[{
+      id: "person", name: "Eva", email: "eva@example.com", active: true, createdAt: "", updatedAt: "",
+    }]} presets={[]} rooms={[]} deadlines={[]} />);
+    expect(html).toContain("Eva");
+    expect(html).not.toContain('aria-pressed="true"');
+    expect(html).toMatch(/<button[^>]*type="submit"[^>]*disabled=""/);
+    expect(html).toContain("Před odesláním vyber, kdo má úkol splnit.");
+  });
+
+  it("offers setup directly when the crew is empty", () => {
+    const html = renderToStaticMarkup(<TaskCreationForm people={[]} presets={[]} rooms={[]} deadlines={[]} />);
+    expect(html).toContain('href="/settings"');
+    expect(html).toContain("Přidat člena v Nastavení");
+    expect(html).toMatch(/<button[^>]*type="submit"[^>]*disabled=""/);
+  });
 });
