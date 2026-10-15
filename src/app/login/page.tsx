@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
-import { ShieldAlert, Sparkles, Loader2 } from "lucide-react";
+import { ShieldAlert, Users, Loader2 } from "lucide-react";
 
 declare global {
   interface Window {
@@ -122,18 +122,27 @@ function LoginForm() {
   };
 
   return (
-    <div className="w-full min-w-0 max-w-md bg-white rounded-2xl shadow-xl border border-slate-100 p-4 sm:p-8 text-center">
-      <div className="w-16 h-16 bg-primary-100 text-primary-700 rounded-2xl flex items-center justify-center mx-auto mb-6 text-3xl shadow-inner">
-        🧹
+    <div className="w-full min-w-0 max-w-md bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8">
+      <div className="flex items-center gap-4">
+        <div aria-hidden="true" className="w-12 h-12 shrink-0 bg-primary-100 rounded-xl flex items-center justify-center text-2xl">
+          🧹
+        </div>
+        <div className="min-w-0">
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+            UklidSiTo
+          </h1>
+          <p className="text-sm leading-relaxed text-slate-600 mt-0.5">
+            Domácnost se sama neuklidí
+          </p>
+        </div>
       </div>
 
-      <h1 className="text-2xl font-black text-slate-900 tracking-tight mb-2">
-        UklidSiTo
-      </h1>
-      <p className="text-sm text-slate-500 mb-8 flex items-center justify-center gap-1">
-        Domácnost se sama neuklidí{" "}
-        <Sparkles className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
-      </p>
+      <div className="mt-8 mb-5">
+        <h2 className="text-lg font-bold text-slate-900">Přihlášení správce</h2>
+        <p className="mt-1 text-sm leading-relaxed text-slate-600">
+          Pokračuj účtem Google, který používáš ke správě domácnosti.
+        </p>
+      </div>
 
       {error && errorMessages[error] && (
         <div role="alert" className="mb-6 p-4 bg-rose-50 border border-rose-200 rounded-xl text-left flex items-start gap-3">
@@ -147,11 +156,7 @@ function LoginForm() {
         </div>
       )}
 
-      <div className="space-y-4">
-        <p className="text-xs text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-100">
-          Úklidová četa se nepřihlašuje. Úkoly potvrzují přes odkaz v e-mailu.
-        </p>
-
+      <div>
         {/* Google Identity Services rendered button */}
         {!clientId ? (
           <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-left text-xs text-amber-900">
@@ -160,7 +165,7 @@ function LoginForm() {
           </div>
         ) : (
           <div className="space-y-3">
-            <div id="google-signin-btn" className="w-full min-h-[44px]" />
+            <div id="google-signin-btn" className="w-full min-h-[44px] flex justify-center" />
             {loadError && (
               <div role="alert" className="text-sm text-rose-800">
                 <p>Přihlášení se nepodařilo načíst. Zkontroluj připojení a zkus to znovu.</p>
@@ -176,13 +181,20 @@ function LoginForm() {
           </div>
         )}
       </div>
+
+      <div className="mt-7 pt-5 border-t border-slate-100 flex items-start gap-3">
+        <Users aria-hidden="true" className="w-4 h-4 shrink-0 mt-0.5 text-slate-500" />
+        <p className="text-xs leading-relaxed text-slate-600">
+          Úklidová četa se nepřihlašuje. Úkoly potvrzují přes odkaz v e-mailu.
+        </p>
+      </div>
     </div>
   );
 }
 
 export default function LoginPage() {
   return (
-    <div className="min-h-[70vh] flex items-center justify-center py-12">
+    <div className="min-h-[65vh] flex items-center justify-center py-6 sm:py-10">
       <Suspense
         fallback={
           <div className="flex items-center justify-center p-12">
