@@ -54,10 +54,5 @@
   - Check changed files with `git status`.
   - Stage the changes and create a local commit (Conventional Commits).
 
-## Context Preservation & File Exclusions
-- Do not open or analyze build/compiler directories: `.next/`, `dist/`, `build/`, `out/`.
-- Do not open or analyze package dependencies: `node_modules/`.
-- Do not open or analyze lockfiles: `package-lock.json`, `pnpm-lock.yaml`, `yarn.lock`.
-- Do not open or analyze large binary/vector assets: `*.svg`, `*.png`, `*.jpg`, `*.ico`.
-- For dependency information, refer only to `package.json`.
-- Keep investigations targeted and solutions concise; avoid unrelated refactoring, reformatting, and speculative redesigns.
+## File Exclusions
+- Don't open or search: `node_modules/`, `.next/`, `dist/`, `build/`, `out/`, `package-lock.json`, `*.tsbuildinfo`, `*.map`, `*.log`, and binary/vector assets (`*.svg`, `*.png`, `*.jpg`, `*.ico`, `*.webp`).
