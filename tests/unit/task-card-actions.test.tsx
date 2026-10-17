@@ -22,6 +22,16 @@ function findAction(node: React.ReactNode, title: string): (() => void) | undefi
   }
 }
 
+function findProps(node: React.ReactNode, title: string): Record<string, unknown> | undefined {
+  if (!React.isValidElement(node)) return;
+  const props = node.props as { title?: string; children?: React.ReactNode };
+  if (props.title === title) return props as Record<string, unknown>;
+  for (const child of React.Children.toArray(props.children)) {
+    const found = findProps(child, title);
+    if (found) return found;
+  }
+}
+
 const task: Task = {
   id: "task", taskName: "Úklid", assigneeId: "person", assigneeName: "Eva", assigneeEmail: "eva@example.com",
   status: "OPEN", createdAt: "2026-10-15T12:00:00Z", updatedAt: "", completionTokenHash: "hash",
@@ -65,5 +75,12 @@ describe("Task card action feedback", () => {
     await work;
     expect(setPendingAction).toHaveBeenLastCalledWith(null);
     expect(setErrorMessage).toHaveBeenLastCalledWith("Úkol nelze zrušit");
+  });
+
+  it("offers re-assigning a completed task through the prefilled creation form", () => {
+    vi.mocked(useState).mockReturnValue([null, vi.fn()]);
+    const link = findProps(TaskCard({ task: { ...task, id: "t 1", status: "DONE" } }), "Zadat úkol znovu");
+    expect(link?.href).toBe("/tasks/new?from=t%201");
+    expect(findProps(TaskCard({ task }), "Zadat úkol znovu")).toBeUndefined();
   });
 });

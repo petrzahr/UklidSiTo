@@ -9,6 +9,7 @@ import {
   Edit2,
   Loader2,
   MailCheck,
+  RotateCcw,
   Send,
   Trash2,
 } from "lucide-react";
@@ -208,6 +209,20 @@ export function TaskCard({ task }: { task: Task }) {
               {pendingAction === "cancel" ? <Loader2 aria-hidden="true" className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
             </button>
           </div>
+        </div>
+      )}
+
+      {/* Action Footer for DONE tasks */}
+      {task.status === "DONE" && (
+        <div className="mt-5 pt-3 border-t border-primary-100 flex flex-wrap items-center gap-2">
+          <Link
+            href={`/tasks/new?from=${encodeURIComponent(task.id)}`}
+            className="inline-flex items-center gap-1 min-h-11 px-2.5 py-1 rounded-md text-xs text-slate-600 hover:text-slate-900 hover:bg-primary-100 font-medium transition-colors"
+            title="Zadat úkol znovu"
+          >
+            <RotateCcw className="w-3 h-3" />
+            <span>Zadat znovu</span>
+          </Link>
         </div>
       )}
     </div>

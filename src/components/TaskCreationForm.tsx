@@ -7,32 +7,46 @@ import { createTaskAction } from "@/app/actions/task-actions";
 import { ArrowLeft, Loader2, X } from "lucide-react";
 import Link from "next/link";
 
+export interface TaskFormInitialValues {
+  taskPresetId: string | null;
+  taskName: string;
+  isCustomTask: boolean;
+  assigneeId: string;
+  roomId: string | null;
+  roomName: string;
+  isCustomRoom: boolean;
+  note: string;
+  deadline: string;
+}
+
 interface Props {
   people: Person[];
   presets: TaskPreset[];
   rooms: Room[];
   deadlines: DeadlinePreset[];
+  initialValues?: TaskFormInitialValues;
 }
 
-export function TaskCreationForm({ people, presets, rooms, deadlines }: Props) {
+export function TaskCreationForm({ people, presets, rooms, deadlines, initialValues }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
   // Selected state
-  const [selectedPresetId, setSelectedPresetId] = useState<string | null>(null);
-  const [taskName, setTaskName] = useState<string>("");
-  const [isCustomTask, setIsCustomTask] = useState(false);
+  const [selectedPresetId, setSelectedPresetId] = useState<string | null>(initialValues?.taskPresetId ?? null);
+  const [taskName, setTaskName] = useState<string>(initialValues?.taskName ?? "");
+  const [isCustomTask, setIsCustomTask] = useState(initialValues?.isCustomTask ?? false);
   const [saveAsPreset, setSaveAsPreset] = useState(false);
 
-  const [selectedAssigneeId, setSelectedAssigneeId] = useState<string>("");
+  const [selectedAssigneeId, setSelectedAssigneeId] = useState<string>(initialValues?.assigneeId ?? "");
 
-  const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
-  const [roomName, setRoomName] = useState<string>("");
-  const [isCustomRoom, setIsCustomRoom] = useState(false);
+  const [selectedRoomId, setSelectedRoomId] = useState<string | null>(initialValues?.roomId ?? null);
+  const [roomName, setRoomName] = useState<string>(initialValues?.roomName ?? "");
+  const [isCustomRoom, setIsCustomRoom] = useState(initialValues?.isCustomRoom ?? false);
   const [saveAsRoomPreset, setSaveAsRoomPreset] = useState(false);
 
-  const [note, setNote] = useState<string>("");
-  const [deadline, setDeadline] = useState<string>("");
+  const [note, setNote] = useState<string>(initialValues?.note ?? "");
+  const [deadline, setDeadline] = useState<string>(initialValues?.deadline ?? "");
+  const [isRepeat, setIsRepeat] = useState(Boolean(initialValues));
 
   const [emailSent, setEmailSent] = useState(false);
   const [submittedMessage, setSubmittedMessage] = useState<string | null>(null);
@@ -126,6 +140,7 @@ export function TaskCreationForm({ people, presets, rooms, deadlines }: Props) {
     setSaveAsRoomPreset(false);
     setNote("");
     setDeadline("");
+    setIsRepeat(false);
     setSubmittedMessage(null);
     setErrorMessage(null);
   };
@@ -193,6 +208,12 @@ export function TaskCreationForm({ people, presets, rooms, deadlines }: Props) {
           Pár kliknutí a úkol je na cestě k příslušnému provinilci.
         </p>
       </div>
+
+      {isRepeat && (
+        <div role="status" className="p-4 bg-primary-50 border border-primary-200 text-primary-800 text-sm font-semibold rounded-xl">
+          Zadáváš znovu splněný úkol – zkontroluj údaje a potvrď.
+        </div>
+      )}
 
       {errorMessage && (
         <div role="alert" className="p-4 bg-rose-50 border border-rose-200 text-rose-800 text-sm font-semibold rounded-xl">
