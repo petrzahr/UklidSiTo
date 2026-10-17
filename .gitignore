@@ -17,6 +17,9 @@
 .DS_Store
 *.pem
 
+# agent tool output
+/.impeccable/
+
 # debug
 npm-debug.log*
 yarn-debug.log*

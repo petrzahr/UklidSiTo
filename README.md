@@ -25,7 +25,7 @@ Správce domácnosti (administrátor) jednoduše vybere úkol, zvolí provinilce
 
 - **Next.js 15+ (App Router)** s React 19 a TypeScriptem
 - **Tailwind CSS** pro mobilní responsivní design (large touch targets, optimalizováno pro ovládání jednou rukou)
-- **NextAuth.js** s Google OAuth (přístup povolen výhradně pro `ADMIN_EMAIL`)
+- **Google Identity Services** + ověření ID tokenu (`google-auth-library`) a vlastní HMAC session cookie (přístup povolen výhradně pro `ADMIN_EMAIL`)
 - **Google Sheets API v4** (přes Google Service Account jako bezdatabázové cloudové úložiště)
 - **Resend** pro transakční HTML e-maily
 - **Vitest** pro automatizované unit a integrační testy
@@ -40,7 +40,8 @@ UklidSiTo/
 │   ├── app/
 │   │   ├── actions/                  # Server Actions (úkoly, nastavení, bootstrap)
 │   │   ├── api/
-│   │   │   ├── auth/[...nextauth]/   # Google OAuth callback
+│   │   │   ├── auth/callback/        # Ověření Google ID tokenu a vytvoření session
+│   │   │   ├── auth/logout/          # Odhlášení (smazání session cookie)
 │   │   │   └── tasks/complete/       # Explicitní POST endpoint pro dokončení
 │   │   ├── login/                    # Přihlášení administrátora přes Google
 │   │   ├── settings/                 # Nastavení (četa, úkoly, místnosti, systém)
@@ -51,7 +52,7 @@ UklidSiTo/
 │   │   └── page.tsx                  # Dashboard administrátora (přehledy, filtry)
 │   ├── components/                   # UI komponenty (Header, TaskCard, Formy)
 │   ├── lib/
-│   │   ├── auth/                     # NextAuth konfigurace a session guard
+│   │   ├── auth/                     # Ověření Google ID tokenu a HMAC session
 │   │   ├── config/                   # Produkční konfigurace
 │   │   ├── security/                 # Generování tokenů a SHA-256 verifikace
 │   │   └── validation/               # Zod schémata pro validaci vstupů

@@ -3,7 +3,7 @@
 ## Stack
 - Next.js 15 (App Router, `src/app`) + React 19, TypeScript 5.7, npm
 - Server Actions in `app/actions`, Route Handlers in `app/api/auth` and `app/api/tasks`
-- Tailwind CSS 3.4 + PostCSS + autoprefixer; clsx + tailwind-merge; icons from lucide-react
+- Tailwind CSS 3.4 + PostCSS + autoprefixer; icons from lucide-react
 - Validation: Zod (`lib/validation`)
 - Database: Google Sheets via `googleapis` (Sheets v4) and a service account
 - Auth: Google Identity Services (popup) + ID token verification via `google-auth-library`
