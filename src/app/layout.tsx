@@ -7,9 +7,6 @@ export const metadata: Metadata = {
   title: "UklidSiTo – Domácnost se sama neuklidí",
   description:
     "Jednoduchá soukromá aplikace pro správu úklidových úkolů v domácnosti s humornou osobností.",
-  icons: {
-    icon: "data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧹</text></svg>",
-  },
 };
 
 export const viewport: Viewport = {
